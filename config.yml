@@ -1,2 +1,4 @@
+# event-id as found in the URI
 event: 36177
-lastpage : 27
+# how many entries per request should be loaded. depending on fetching cacles, network performance, server performance and client performance, I suggest 20 per 5 min / 100 per 10 min / 200 for full fetch 
+per_page : 20

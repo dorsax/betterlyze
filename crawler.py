@@ -10,11 +10,10 @@ config_filename = 'config.yml'
 configstream = open(os.path.dirname(os.path.realpath(__file__))+os.path.sep+config_filename, 'r')
 config = yaml.safe_load (configstream)
 event = config.get('event')
-currentpage = config.get('lastpage',0)
+per_page = config.get('per_page')
 
 uri = 'https://api.betterplace.org/de/api_v4/fundraising_events/'+str(event)+'/opinions.json'
 parameters = '?order=created_at:ASC&per_page=%%per_page%%&page=%%page%%'
-per_page=20
 page = 50000000 # ensures no data at all and gets the key param to be loaded: total_pages !
 
 def build_uri ():
