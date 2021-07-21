@@ -1,4 +1,9 @@
 # event-id as found in the URI
 event: 36177
-# how many entries per request should be loaded. depending on fetching cacles, network performance, server performance and client performance, I suggest 20 per 5 min / 100 per 10 min / 200 for full fetch 
+# how many entries per request should be loaded. depending on fetching cycles, network performance, server performance and client performance,
+# I suggest not more than 50 due to issues seen with the sqlite-db.
 per_page : 20
+# choose a database name, you can use that to provide any database you want - note that on windows, use double backslashes like C:\\cache.db
+# path is relative unless you provide it by the root directory (/ or C:\\)
+# folder structure must exist!
+database_name: "cache.db"

@@ -3,6 +3,8 @@ import yaml
 import os
 import requests
 import json 
+import sqlite3
+from sqlite3 import Error
 from datetime import datetime as dt
 
 
@@ -15,6 +17,7 @@ configstream = open(os.path.dirname(os.path.realpath(__file__))+os.path.sep+conf
 config = yaml.safe_load (configstream)
 event = config.get('event')
 per_page = config.get('per_page')
+db_file = config.get('database_name')
 try:
     with open(cache_filename, 'r') as jsonFile:
         cache = json.load(jsonFile)
@@ -36,10 +39,20 @@ def build_uri ():
 def fetch () :
     return requests.get(build_uri()).json()
 
+def create_connection (db_file):
+    connection = None
+    try:
+        connection = sqlite3.connect(db_file)
+    except Error as e:
+        print(e)
+    finally: 
+        if connection:
+            return connection
+
 jresponse = requests.get(build_uri()).json()
 
 # get current max pages
-maxpages = jresponse['total_pages']
+maxpages = 50 # jresponse['total_pages']
 
 # if no cache exists, do not check cached entries
 if (last_id==-1):
@@ -48,22 +61,30 @@ else:
     skip=True
 
 cachetime = dt.now()
+
 # call all newly available pages
 for index in range(currentpage,maxpages+1):
     page = index
     response = fetch()['data'] # get the data from the page set above
-    for index2 in range (len(response)): # go through response
-        if (not(skip)): # if this entry should be skipped due to caching
-            last_id = response[len(response)-1].get('id',0) # set the latest id to the cache to avoid wrong caches
-            donated_amount = response[index2].get('donated_amount_in_cents',0)
-            if (donated_amount): # only count non-zero-amounts. those might have been deleted or anonymous
-                amount += donated_amount
-                donors += 1
-            
-        if (skip & (last_id == response[index2].get("id"))): # latest index reached. checked after calculation to avoid double calcs
-            skip = False
-    currentpage = page # set the latest page for caching
-print ((dt.now()-cachetime).seconds)
+    if len(response) >= 0:
+        connection = create_connection(db_file)
+        if connection is not None:
+            cursor = connection.cursor()
+            for index2 in range (len(response)): # go through response
+                if (not(skip)): # if this entry should be skipped due to caching
+                    cursor.execute("INSERT INTO donations (created_at,id,donated_amount_in_cents) VALUES (?,?,?)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0)))
+                    last_id = response[len(response)-1].get('id',0) # set the latest id to the cache to avoid wrong caches
+                    donated_amount = response[index2].get('donated_amount_in_cents',0)
+                    if (donated_amount): # only count non-zero-amounts. those might have been deleted or anonymous
+                        amount += donated_amount
+                        donors += 1
+                    
+                if (skip & (last_id == response[index2].get("id"))): # latest index reached. checked after calculation to avoid double calcs
+                    skip = False
+            currentpage = page # set the latest page for caching
+            connection.commit()
+            connection.close()
+# print ((dt.now()-cachetime).seconds)
 # print (str(donors) + " donors donated "+ str(amount))
 # uri = 'https://api.betterplace.org/de/api_v4/fundraising_events/'+str(event)+'.json'
 # parameters = ''
