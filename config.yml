@@ -10,3 +10,7 @@ database_name: "cache.db"
 # maximum pages per cycle. if fetching the entries falls behind, you may get into trouble fetching on time
 # recommendation: not more than 100/per_page
 max_pages_per_cycle: 4
+# starting time for visualization (crops off everything before)
+starttime: "2020-11-14T12:00:00+01:00"
+# ending time for visualization (crops off everything after)
+endtime: "2020-11-15T22:00:00+01:00"
