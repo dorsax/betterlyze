@@ -18,6 +18,8 @@ config = yaml.safe_load (configstream)
 event = config.get('event')
 per_page = config.get('per_page')
 db_file = config.get('database_name')
+max_pages_per_cycle = config.get('max_pages_per_cycle')
+
 try:
     with open(cache_filename, 'r') as jsonFile:
         cache = json.load(jsonFile)
@@ -49,10 +51,13 @@ def create_connection (db_file):
         if connection:
             return connection
 
-jresponse = requests.get(build_uri()).json()
+jresponse = fetch()
 
-# get current max pages
-maxpages = 50 # jresponse['total_pages']
+# do a maximum of x pages per cycle, but don't try to get more pages than available (results in NULL data)
+maxpages_fetched = jresponse['total_pages']
+maxpages = currentpage + max_pages_per_cycle  
+if maxpages > maxpages_fetched:
+    maxpages = maxpages_fetched
 
 # if no cache exists, do not check cached entries
 if (last_id==-1):
