@@ -19,7 +19,7 @@ def create_tables (connection):
     cursor = connection.cursor()
     print ("Creating tables if not existing...")
     cursor.execute ('''CREATE TABLE IF NOT EXISTS donations
-                        (created_at text, id text, donated_amount_in_cents text)''')
+                        (donated_at text, id text, donated_amount_in_cents text, page text)''')
     cursor.execute ('''CREATE TABLE IF NOT EXISTS last_run
                         (created_at text, id text, last_page text)''')
     cursor.execute ('''SELECT rowid FROM last_run''')
