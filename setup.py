@@ -27,7 +27,7 @@ def create_tables (connection):
     if entry is None:
         print("NO cached ENTRY FOUND, initializing the first one.")
         cursor.execute("""INSERT INTO last_run
-                        VALUES ('', '', '-1')""")
+                        VALUES ('', '-1', '1')""")
         connection.commit()
     cursor.close()
 

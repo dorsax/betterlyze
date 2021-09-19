@@ -31,6 +31,7 @@ donors = cache.get ('user_count',0)
 last_id = cache.get ('last_id',-1)
 amount = cache.get ('amount',0) # get from cache: where has the last iteration stopped? As in which page.
 
+
 uri = 'https://api.betterplace.org/de/api_v4/fundraising_events/'+str(event)+'/opinions.json'
 parameters = '?order=created_at:ASC&per_page=%%per_page%%&page=%%page%%'
 page = 50000000 # ensures no data at all and gets the key param to be loaded: total_pages !
@@ -51,6 +52,22 @@ def create_connection (db_file):
         if connection:
             return connection
 
+currentpage = 1
+last_id = -1
+# new cache from db:
+connection = create_connection(db_file)
+if connection is not None:
+    cursor = connection.cursor()
+    cursor.execute("SELECT id,page FROM donations ORDER BY donated_at DESC;")
+    
+    #rows = cursor.fetchall()
+    last_run = cursor.fetchone()
+    if type(last_run) == tuple:
+        currentpage = int(last_run[1])
+        last_id = int(last_run[0])
+        print (f'page is {currentpage} and last was {last_id}')
+
+
 jresponse = fetch()
 
 # do a maximum of x pages per cycle, but don't try to get more pages than available (results in NULL data)
@@ -70,14 +87,15 @@ cachetime = dt.now()
 # call all newly available pages
 for index in range(currentpage,maxpages+1):
     page = index
-    response = fetch()['data'] # get the data from the page set above
+    response = fetch()
+    response = response['data']  # get the data from the page set above
     if len(response) >= 0:
         connection = create_connection(db_file)
         if connection is not None:
             cursor = connection.cursor()
             for index2 in range (len(response)): # go through response
                 if (not(skip)): # if this entry should be skipped due to caching
-                    cursor.execute("INSERT INTO donations (created_at,id,donated_amount_in_cents) VALUES (?,?,?)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0)))
+                    cursor.execute("INSERT INTO donations (donated_at,id,donated_amount_in_cents,page) VALUES (?,?,?,?)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0),page))
                     last_id = response[len(response)-1].get('id',0) # set the latest id to the cache to avoid wrong caches
                     donated_amount = response[index2].get('donated_amount_in_cents',0)
                     if (donated_amount): # only count non-zero-amounts. those might have been deleted or anonymous
@@ -100,9 +118,16 @@ for index in range(currentpage,maxpages+1):
 
 # write all data into the cache
 
-cache['last_page']=currentpage
+connection = create_connection(db_file)
+if connection is not None:
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO last_run (created_at,id,last_page) VALUES (?,?,?)", (str(dt.now()) ,last_id,currentpage))
+    connection.commit()
+    connection.close()
+
+# cache['last_page']=currentpage
 cache['user_count']=donors
-cache['last_id']=last_id
+# cache['last_id']=last_id
 cache['amount']=amount
 with open(cache_filename, 'w') as jsonFile:
     json.dump(cache, jsonFile)
