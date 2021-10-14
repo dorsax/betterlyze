@@ -1,17 +1,23 @@
 import pandas as pd
-import sqlite3
-from sqlite3 import Error
+import setup
 import yaml
 import os
 import datetime
+import pytz
 from datetime import datetime as dt
 import matplotlib.pyplot as plt
+
+
+utc=pytz.UTC
 
 # get the config
 config_filename = 'config.yml'
 configstream = open(os.path.dirname(os.path.realpath(__file__))+os.path.sep+config_filename, 'r')
 config = yaml.safe_load (configstream)
-db_file = config.get('database_name')
+address = config["database"].get('address')
+username = config["database"].get('username')
+password = config["database"].get('password')
+database = config["database"].get('database')
 startdate= dt.fromisoformat(config.get('starttime'))
 enddate= dt.fromisoformat(config.get('endtime'))
 # this will visualize the data previously fetched.
@@ -21,24 +27,17 @@ enddate= dt.fromisoformat(config.get('endtime'))
 # compute results and maybe write statistical tables to db
 
 # build the forms and graphs
-def create_connection (db_file):
-    connection = None
-    try:
-        connection = sqlite3.connect(db_file)
-    except Error as e:
-        print(e)
-    finally: 
-        if connection:
-            return connection
+def create_connection ():
+    return setup.create_connection(username=username,password=password,address=address,database=database)
 # Read sqlite query results into a pandas DataFrame
-connection = create_connection (db_file)
+connection = create_connection ()
 dataframe = pd.read_sql_query("SELECT * from donations", connection)
 
 
 # convert timestamps to datetime
-dataframe['donated_at_datetime'] = pd.to_datetime(dataframe.donated_at, format='%Y-%m-%dT%H:%M:%S%z')
+dataframe['donated_at_datetime'] = dataframe.donated_at
 # convert amount to euro
-dataframe['donated_amount_in_cents'] = pd.to_numeric(dataframe.donated_amount_in_cents) 
+# dataframe['donated_amount_in_cents'] = pd.to_numeric(dataframe.donated_amount_in_cents) 
 dataframe['donated_amount_in_Euro'] = dataframe.donated_amount_in_cents.div(100).round(2)
 # cumulate 
 dataframe['cumulated_sum'] = dataframe.donated_amount_in_Euro.cumsum(axis = 0, skipna = True)
@@ -48,13 +47,14 @@ maxval = 0
 # startdate = pd.to_datetime('2020-11-14T12:00:00+01:00', format='%Y-%m-%dT%H:%M:%S%z')-datetime.timedelta(hours=9, minutes=30)
 
 enddate_from_data = dataframe['donated_at_datetime'].max().to_pydatetime()
+enddate_from_data = utc.localize(enddate_from_data)
 if enddate_from_data < enddate:
     enddate = enddate_from_data
 maxval = dataframe['cumulated_sum'].max() # + 10000
 print (f'from {startdate} - {enddate} with max. {maxval}')
 print(dataframe.head())
 
-dataframe.to_sql("converted",connection,if_exists="replace")
+# dataframe.to_sql("converted",connection,if_exists="replace")
 connection.close()
 #Visualize the donated money
 #plt.figure(figsize=(64,16))
