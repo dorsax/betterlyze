@@ -3,9 +3,7 @@ import yaml
 import os
 import requests
 import json 
-import sqlite3
 import setup
-from sqlite3 import Error
 from datetime import datetime as dt
 
 
@@ -50,14 +48,7 @@ def fetch () :
     return requests.get(build_uri()).json()
 
 def create_connection ():
-    connection = None
-    try:
-        connection = setup.create_connection(username=username,password=password,address=address,database=database)
-    except Error as e:
-        print(e)
-    finally: 
-        if connection:
-            return connection
+    return setup.create_connection(username=username,password=password,address=address,database=database)
 
 currentpage = 1
 last_id = -1
