@@ -3,10 +3,6 @@ event: 36177
 # how many entries per request should be loaded. depending on fetching cycles, network performance, server performance and client performance,
 # I suggest not more than 50 due to issues seen with the sqlite-db.
 per_page : 20
-# choose a database name, you can use that to provide any database you want - note that on windows, use double backslashes like C:\\cache.db
-# path is relative unless you provide it by the root directory (/ or C:\\)
-# folder structure must exist!
-database_name: "cache.db"
 # maximum pages per cycle. if fetching the entries falls behind, you may get into trouble fetching on time
 # recommendation: not more than 100/per_page
 max_pages_per_cycle: 4
@@ -14,3 +10,7 @@ max_pages_per_cycle: 4
 starttime: "2020-11-14T12:00:00+01:00"
 # ending time for visualization (crops off everything after)
 endtime: "2020-11-15T22:00:00+01:00"
+database: #mysql database
+  address: "192.168.1.10"
+  username: "crawler"
+  password: "secret"
