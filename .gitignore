@@ -131,3 +131,4 @@ dmypy.json
 # caches 
 cache.json
 cache.db
+config.yml
