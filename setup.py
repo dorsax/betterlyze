@@ -16,7 +16,7 @@ def create_connection (address,username,password,database):
             return connection
 
 def create_tables (connection):
-    cursor = connection.cursor()
+    cursor = connection.cursor(buffered=True)
     print ("Creating tables if not existing...")
     cursor.execute ('''CREATE TABLE IF NOT EXISTS donations
                         (donated_at DATETIME, id VARCHAR(8), donated_amount_in_cents INT, page INT)''')
