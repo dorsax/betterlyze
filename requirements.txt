@@ -2,3 +2,4 @@ pyyaml
 requests
 pandas
 matplotlib
+mysql-connector-python

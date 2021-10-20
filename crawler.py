@@ -3,8 +3,7 @@ import yaml
 import os
 import requests
 import json 
-import sqlite3
-from sqlite3 import Error
+import setup
 from datetime import datetime as dt
 
 
@@ -18,6 +17,11 @@ config = yaml.safe_load (configstream)
 event = config.get('event')
 per_page = config.get('per_page')
 db_file = config.get('database_name')
+address = config["database"].get('address')
+username = config["database"].get('username')
+password = config["database"].get('password')
+database = config["database"].get('database')
+
 max_pages_per_cycle = config.get('max_pages_per_cycle')
 
 try:
@@ -39,23 +43,17 @@ page = 50000000 # ensures no data at all and gets the key param to be loaded: to
 def build_uri ():
     return uri+parameters.replace('%%per_page%%',str(per_page)).replace('%%page%%',str(page))
 
+
 def fetch () :
     return requests.get(build_uri()).json()
 
-def create_connection (db_file):
-    connection = None
-    try:
-        connection = sqlite3.connect(db_file)
-    except Error as e:
-        print(e)
-    finally: 
-        if connection:
-            return connection
+def create_connection ():
+    return setup.create_connection(username=username,password=password,address=address,database=database)
 
 currentpage = 1
 last_id = -1
 # new cache from db:
-connection = create_connection(db_file)
+connection = create_connection()
 if connection is not None:
     cursor = connection.cursor()
     cursor.execute("SELECT id,page FROM donations ORDER BY donated_at DESC;")
@@ -90,12 +88,12 @@ for index in range(currentpage,maxpages+1):
     response = fetch()
     response = response['data']  # get the data from the page set above
     if len(response) >= 0:
-        connection = create_connection(db_file)
+        connection = create_connection()
         if connection is not None:
             cursor = connection.cursor()
             for index2 in range (len(response)): # go through response
                 if (not(skip)): # if this entry should be skipped due to caching
-                    cursor.execute("INSERT INTO donations (donated_at,id,donated_amount_in_cents,page) VALUES (?,?,?,?)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0),page))
+                    cursor.execute("INSERT INTO donations (donated_at,id,donated_amount_in_cents,page) VALUES (%s,%s,%s,%s)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0),page))
                     last_id = response[len(response)-1].get('id',0) # set the latest id to the cache to avoid wrong caches
                     donated_amount = response[index2].get('donated_amount_in_cents',0)
                     if (donated_amount): # only count non-zero-amounts. those might have been deleted or anonymous
@@ -118,10 +116,10 @@ for index in range(currentpage,maxpages+1):
 
 # write all data into the cache
 
-connection = create_connection(db_file)
+connection = create_connection()
 if connection is not None:
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO last_run (created_at,id,last_page) VALUES (?,?,?)", (str(dt.now()) ,last_id,currentpage))
+    cursor.execute("INSERT INTO last_run (created_at,id,last_page) VALUES (%s,%s,%s)", (dt.now() ,last_id,currentpage))
     connection.commit()
     connection.close()
 
