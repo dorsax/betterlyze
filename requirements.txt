@@ -4,3 +4,4 @@ pandas
 matplotlib
 mysql-connector-python
 dash
+flask_caching

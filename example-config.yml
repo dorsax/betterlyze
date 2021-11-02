@@ -10,6 +10,8 @@ max_pages_per_cycle: 2
 starttime: "2020-11-14T12:00:00"
 # ending time for visualization (crops off everything after)
 endtime: "2020-11-15T22:00:00"
+# cache time in seconds, i.e. how fast shall the website get the latest data from the database. setting this to 0 will impact loading time for users and not grant any speed
+cachetime: 120
 #mysql database
 database:
   address: "192.168.1.10"
