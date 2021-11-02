@@ -42,7 +42,7 @@ def update_app(n_clicks):
                 color_discrete_sequence=["red"],
                 range_x=[startdate,enddate])
     #fig.update_layout(transition_duration=500)
-
+    df=df.sort_values(by='donated_at', ascending=False)
     return fig,df.to_dict('records')
 
 money = dash_table.FormatTemplate.money(2)
