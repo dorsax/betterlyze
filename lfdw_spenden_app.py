@@ -9,6 +9,8 @@ from pandas import Timestamp as ts
 from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from dash.dash_table.Format import Format, Group, Prefix, Scheme, Symbol
 from dash import dash_table
 from flask_caching import Cache
@@ -65,8 +67,7 @@ def query_data():
 @app.callback(
     Output(component_id='Komplettgrafik', component_property='figure'),
     Output(component_id='Komplettabelle', component_property='data'),
-    Output(component_id='10_100_k_pie_1', component_property='figure'),
-    Output(component_id='10_100_k_pie_2', component_property='figure'),
+    Output(component_id='10_100_k_pie', component_property='figure'),
     Input('button_reload', 'n_clicks'),
 )
 def update_app(n_clicks):
@@ -85,25 +86,31 @@ def update_app(n_clicks):
         linechart.update_xaxes(
             range=[startdate,maxentry]
         )
-    piechart_1=px.pie(df_pie, 
-        values='donations', 
-        names='categories', 
-        color_discrete_sequence=px.colors.sequential.RdBu,
-        labels={
-            "donations":"Spender",
-            "categories" : "Kategorien"
-        },)
-    piechart_2=px.pie(df_pie, 
-        values='donation_sum', 
-        names='categories', 
-        color_discrete_sequence=px.colors.sequential.RdBu,
-        labels={
-            "donation_sum":"Spenden",
-            "categories" : "Kategorien"
-        },)
+    labels=df_pie['categories']
+    piecharts = make_subplots (rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
+    piecharts.add_trace (go.Pie(labels=labels,values=df_pie['donations'],
+                    name='Spender',sort=False),1,1)
+    piecharts.add_trace (go.Pie(labels=labels,values=df_pie['donation_sum'],
+                    name='Spenden',sort=False),1,2)
+        
+    piecharts.update_traces(hole=.4, hovertemplate ="%{label}: <br>%{percent} </br> %{value}")
+
+    piecharts.update_layout(
+        legend_title_text='Spendenkategorie',
+        title={
+            'text': "Verteilung von Spenden und -summen",
+            'y':0.9,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+        },
+        legend_x=0.44,
+        # Add annotations in the center of the donut pies.
+        annotations=[dict(text='Spenden', x=0.0, y=0.5, font_size=20, showarrow=False),
+                    dict(text='Summen', x=1.0, y=0.5, font_size=20, showarrow=False)])
     
 
-    return linechart,df.to_dict('records'),piechart_1,piechart_2
+    return linechart,df.to_dict('records'),piecharts
 
 money = dash_table.FormatTemplate.money(2)
 columns = [
@@ -116,15 +123,8 @@ app.layout = html.Div([
         id='Komplettgrafik',
         #figure=fig
     ),
-    html.H4 (
-        id="Title_Pies",
-        children="Verteilung von Spendern und Spenden"
-    ),
     dcc.Graph(
-        id="10_100_k_pie_1"
-    ),
-    dcc.Graph(
-        id="10_100_k_pie_2"
+        id="10_100_k_pie"
     ),
     html.H4(
         id='Title_Table',
