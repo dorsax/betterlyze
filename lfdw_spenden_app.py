@@ -26,7 +26,9 @@ CACHE_TIME = config.get('cachetime')  # seconds
 startdate= ts(config.get('starttime'))
 enddate= ts(config.get('endtime'))
 
-app = dash.Dash(__name__)
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+app = dash.Dash(__name__,external_stylesheets=external_stylesheets)
 
 cache = Cache(app.server, config={
     'CACHE_TYPE': 'filesystem',
@@ -86,6 +88,7 @@ def update_app(n_clicks):
         linechart.update_xaxes(
             range=[startdate,maxentry]
         )
+
     labels=df_pie['categories']
     piecharts = make_subplots (rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
     piecharts.add_trace (go.Pie(labels=labels,values=df_pie['donations'],
@@ -117,8 +120,20 @@ columns = [
     dict(id='donated_at', name='Zeitpunkt'),
     dict(id='donated_amount_in_Euro', name='Spende', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
 ]
+
+footer_text = '''
+© dor_sax & nib0t. Source code available [on GitHub](https://github.com/dorsax/betterplace_fetch)
+'''
 app.layout = html.Div([
-    html.Button("Reload", id="button_reload"),
+    html.Div([
+        html.Button("Reload", id="button_reload", 
+        ),
+        html.A(html.Button('Home'),
+            href='https://www.xn--lootfrdiewelt-0ob.de/'),
+        html.A(html.Button('Source Code'),
+            href='https://github.com/dorsax/betterplace_fetch', target="_blank"),
+
+    ],),
     dcc.Graph(
         id='Komplettgrafik',
         #figure=fig
@@ -135,8 +150,13 @@ app.layout = html.Div([
         #data=df.to_dict('records')
         columns=columns,
         page_size=20,
-    )
+    ),
+    html.Footer(
+        dcc.Markdown(footer_text)        
+    ),
 ])
 
+app.title='analytics'
+app._favicon=("favicon.png")
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True,host="0.0.0.0")
