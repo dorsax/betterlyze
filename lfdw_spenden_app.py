@@ -5,7 +5,7 @@ import setup
 from dash import dash_table
 from dash import dcc
 from dash import html
-from datetime import datetime as dt
+from pandas import Timestamp as ts
 from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
@@ -19,8 +19,9 @@ address = config["database"].get('address')
 username = config["database"].get('username')
 password = config["database"].get('password')
 database = config["database"].get('database')
-startdate= dt.fromisoformat(config.get('starttime'))
-enddate= dt.fromisoformat(config.get('endtime'))
+startdate= ts(config.get('starttime'))
+enddate= ts(config.get('endtime'))
+
 
 
 app = dash.Dash(__name__)
@@ -36,13 +37,22 @@ def update_app(n_clicks):
     df = pd.read_sql(sql='SELECT donated_at,donated_amount_in_cents FROM donations ORDER BY donated_at ASC',con=connection,parse_dates=['donated_at'])
     df['donated_amount_in_Euro'] = df.donated_amount_in_cents.div(100).round(2)
     df['cumulated_sum'] = df.donated_amount_in_Euro.cumsum(axis = 0, skipna = True)
-    
     fig = px.line(data_frame=df, x="donated_at", y="cumulated_sum",
                 hover_data=['donated_at','cumulated_sum'],
+                labels={
+                    "donated_at":"Zeitpunkt der Spende",
+                    "cumulated_sum" : "Spendenstand"
+                },
                 color_discrete_sequence=["red"],
                 range_x=[startdate,enddate])
-    #fig.update_layout(transition_duration=500)
+    # change the graph to only show the current maximum time
+    maxentry=df["donated_at"].max()
+    if (enddate>=maxentry):
+        fig.update_xaxes(
+            range=[startdate,maxentry]
+        )
     df=df.sort_values(by='donated_at', ascending=False)
+
     return fig,df.to_dict('records')
 
 money = dash_table.FormatTemplate.money(2)

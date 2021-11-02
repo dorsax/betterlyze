@@ -7,9 +7,9 @@ per_page : 200
 # recommendation: not more than 300/per_page, rounded up
 max_pages_per_cycle: 2
 # starting time for visualization (crops off everything before)
-starttime: "2020-11-14T12:00:00+01:00"
+starttime: "2020-11-14T12:00:00"
 # ending time for visualization (crops off everything after)
-endtime: "2020-11-15T22:00:00+01:00"
+endtime: "2020-11-15T22:00:00"
 #mysql database
 database:
   address: "192.168.1.10"
