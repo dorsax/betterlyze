@@ -41,17 +41,37 @@ def query_data():
     df['donated_amount_in_Euro'] = df.donated_amount_in_cents.div(100).round(2)
     df['cumulated_sum'] = df.donated_amount_in_Euro.cumsum(axis = 0, skipna = True)
     df=df.sort_values(by='donated_at', ascending=False)
+    template_pie= {'donations': [0,0,0,0],'categories':['bis 10 €','10 bis 100 €','100 bis 1000 €', 'über 1000 €'],'donation_sum':[0,0,0,0]}
+    for index, row in df.iterrows():
+        if (row['donated_amount_in_cents']<1000):
+            template_pie['donations'][0] += 1
+            template_pie['donation_sum'][0] += row["donated_amount_in_Euro"]
 
-    return df
+        elif (row['donated_amount_in_cents']<10000):
+            template_pie['donations'][1] += 1
+            template_pie['donation_sum'][1] += row["donated_amount_in_Euro"]
+
+        elif (row['donated_amount_in_cents']<100000):
+            template_pie['donations'][2] += 1
+            template_pie['donation_sum'][2] += row["donated_amount_in_Euro"]
+
+        elif (row['donated_amount_in_cents']>=100000):
+            template_pie['donations'][3] += 1
+            template_pie['donation_sum'][3] += row["donated_amount_in_Euro"]
+
+    df_pie= pd.DataFrame(data=template_pie)
+    return df,df_pie
 
 @app.callback(
     Output(component_id='Komplettgrafik', component_property='figure'),
     Output(component_id='Komplettabelle', component_property='data'),
+    Output(component_id='10_100_k_pie_1', component_property='figure'),
+    Output(component_id='10_100_k_pie_2', component_property='figure'),
     Input('button_reload', 'n_clicks'),
 )
 def update_app(n_clicks):
-    df = query_data()
-    fig = px.line(data_frame=df, x="donated_at", y="cumulated_sum",
+    df,df_pie = query_data()
+    linechart = px.line(data_frame=df, x="donated_at", y="cumulated_sum",
                 hover_data=['donated_at','cumulated_sum'],
                 labels={
                     "donated_at":"Zeitpunkt der Spende",
@@ -62,12 +82,28 @@ def update_app(n_clicks):
     # change the graph to only show the current maximum time
     maxentry=df["donated_at"].max()
     if (enddate>=maxentry):
-        fig.update_xaxes(
+        linechart.update_xaxes(
             range=[startdate,maxentry]
         )
+    piechart_1=px.pie(df_pie, 
+        values='donations', 
+        names='categories', 
+        color_discrete_sequence=px.colors.sequential.RdBu,
+        labels={
+            "donations":"Spender",
+            "categories" : "Kategorien"
+        },)
+    piechart_2=px.pie(df_pie, 
+        values='donation_sum', 
+        names='categories', 
+        color_discrete_sequence=px.colors.sequential.RdBu,
+        labels={
+            "donation_sum":"Spenden",
+            "categories" : "Kategorien"
+        },)
     
 
-    return fig,df.to_dict('records')
+    return linechart,df.to_dict('records'),piechart_1,piechart_2
 
 money = dash_table.FormatTemplate.money(2)
 columns = [
@@ -79,6 +115,16 @@ app.layout = html.Div([
     dcc.Graph(
         id='Komplettgrafik',
         #figure=fig
+    ),
+    html.H4 (
+        id="Title_Pies",
+        children="Verteilung von Spendern und Spenden"
+    ),
+    dcc.Graph(
+        id="10_100_k_pie_1"
+    ),
+    dcc.Graph(
+        id="10_100_k_pie_2"
     ),
     html.H4(
         id='Title_Table',
