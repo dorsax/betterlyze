@@ -7,6 +7,7 @@ from dash import dcc
 from dash import html
 from pandas import Timestamp as ts
 from dash.dependencies import Input, Output
+from datetime import timedelta
 import plotly.express as px
 import pandas as pd
 import plotly.graph_objects as go
@@ -26,6 +27,8 @@ CACHE_TIME = config.get('cachetime')  # seconds
 startdate= ts(config.get('starttime'))
 enddate= ts(config.get('endtime'))
 
+
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__,external_stylesheets=external_stylesheets)
@@ -44,8 +47,26 @@ def query_data():
     df = pd.read_sql(sql='SELECT donated_at,donated_amount_in_cents FROM donations ORDER BY donated_at ASC',con=connection,parse_dates=['donated_at'])
     df['donated_amount_in_Euro'] = df.donated_amount_in_cents.div(100).round(2)
     df['cumulated_sum'] = df.donated_amount_in_Euro.cumsum(axis = 0, skipna = True)
-    df=df.sort_values(by='donated_at', ascending=False)
+    #df=df.sort_values(by='donated_at', ascending=False) # newest to earliest
     template_pie= {'donations': [0,0,0,0],'categories':['bis 10 €','10 bis 100 €','100 bis 1000 €', 'über 1000 €'],'donation_sum':[0,0,0,0]}
+    maxtime=df['donated_at'].max()
+    if (maxtime>enddate):
+        maxtime=enddate
+    # 1st hour
+    template_times = {'timestamps': [ts(startdate.year,startdate.month,startdate.day,startdate.hour,0,0,0)], 'donors': [0], 'donations': [0]}
+    currenttime = startdate
+    count=1
+    while (currenttime <= maxtime):
+        currenttime = startdate+timedelta(hours=count)
+        template_times['timestamps'].append(currenttime)
+        template_times['donors'].append(0)
+        template_times['donations'].append(0)
+        count+=1
+        if (count>1000):
+            exit("Fatal error while computing timetables!")
+
+    haventfoundit = True
+
     for index, row in df.iterrows():
         if (row['donated_amount_in_cents']<1000):
             template_pie['donations'][0] += 1
@@ -63,17 +84,39 @@ def query_data():
             template_pie['donations'][3] += 1
             template_pie['donation_sum'][3] += row["donated_amount_in_Euro"]
 
+        if (False):#row['donated_at']<template_times['timestamps'][1]):
+            template_times['donors'][0]+=1
+            template_times['donations'][0]+=row['donated_amount_in_Euro']
+        else:
+            for index2 in range (0,len(template_times['timestamps'])-1):
+                if ((row['donated_at']>=template_times['timestamps'][index2]) and (row['donated_at']<=template_times['timestamps'][index2+1])):
+                    if (haventfoundit):
+                        haventfoundit=False
+                    template_times['donors'][index2]+=1
+                    template_times['donations'][index2]+=row['donated_amount_in_Euro']
+                    break
+        if (haventfoundit):
+            haventfoundit=False
+            template_times['donors'][len(template_times['timestamps'])-1]+=1
+            template_times['donations'][len(template_times['timestamps'])-1]+=row['donated_amount_in_Euro']
+
+    df_time = pd.DataFrame(data=template_times)        
     df_pie= pd.DataFrame(data=template_pie)
-    return df,df_pie
+    return df,df_pie,df_time
+
+
 
 @app.callback(
     Output(component_id='Komplettgrafik', component_property='figure'),
     Output(component_id='Komplettabelle', component_property='data'),
     Output(component_id='10_100_k_pie', component_property='figure'),
+    Output(component_id='hourly', component_property='figure'),
     Input('button_reload', 'n_clicks'),
 )
 def update_app(n_clicks):
-    df,df_pie = query_data()
+    
+    df,df_pie,df_time = query_data()
+
     linechart = px.line(data_frame=df, x="donated_at", y="cumulated_sum",
                 hover_data=['donated_at','cumulated_sum'],
                 labels={
@@ -81,7 +124,8 @@ def update_app(n_clicks):
                     "cumulated_sum" : "Spendenstand"
                 },
                 color_discrete_sequence=["red"],
-                range_x=[startdate,enddate])
+                range_x=[startdate,enddate],
+                title="Spendenverlauf")
     # change the graph to only show the current maximum time
     maxentry=df["donated_at"].max()
     if (enddate>=maxentry):
@@ -89,6 +133,14 @@ def update_app(n_clicks):
             range=[startdate,maxentry]
         )
 
+    # hourlychart = px.bar(df_time, x='timestamps', y='donors', labels={
+    #                 "timestamps":"Zeitpunkte",
+    #                 "donations" : "Spender"
+    #             }, title="Stündliche Spenden")
+    hourlychart = fig = go.Figure(data=[
+    go.Bar(name='Spender', x=df_time['timestamps'], y=df_time['donors']),
+    go.Bar(name='Spenden', x=df_time['timestamps'], y=df_time['donations'])
+            ])
     labels=df_pie['categories']
     piecharts = make_subplots (rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
     piecharts.add_trace (go.Pie(labels=labels,values=df_pie['donations'],
@@ -112,8 +164,7 @@ def update_app(n_clicks):
         annotations=[dict(text='Spenden', x=0.0, y=0.5, font_size=20, showarrow=False),
                     dict(text='Summen', x=1.0, y=0.5, font_size=20, showarrow=False)])
     
-
-    return linechart,df.to_dict('records'),piecharts
+    return linechart,df.to_dict('records'),piecharts, hourlychart
 
 money = dash_table.FormatTemplate.money(2)
 columns = [
@@ -128,8 +179,8 @@ app.layout = html.Div([
     html.Div([
         html.Button("Reload", id="button_reload", 
         ),
-        html.A(html.Button('Home'),
-            href='https://www.xn--lootfrdiewelt-0ob.de/'),
+        # html.A(html.Button('Home'),
+        #     href='https://www.xn--lootfrdiewelt-0ob.de/'),
         html.A(html.Button('Source Code'),
             href='https://github.com/dorsax/betterplace_fetch', target="_blank"),
 
@@ -141,6 +192,9 @@ app.layout = html.Div([
     dcc.Graph(
         id="10_100_k_pie"
     ),
+    dcc.Graph(
+        id="hourly"
+    ),
     html.H4(
         id='Title_Table',
         children='Letzte Spenden'
@@ -150,6 +204,7 @@ app.layout = html.Div([
         #data=df.to_dict('records')
         columns=columns,
         page_size=20,
+
     ),
     html.Footer(
         dcc.Markdown(footer_text)        
