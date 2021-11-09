@@ -15,19 +15,26 @@ def create_connection (address,username,password,database):
         if connection:
             return connection
 
-def create_tables (connection):
+def create_tables (connection,old_event,new_event):
     cursor = connection.cursor(buffered=True)
     print ("Creating tables if not existing...")
     cursor.execute ('''CREATE TABLE IF NOT EXISTS donations
-                        (donated_at DATETIME, id VARCHAR(8), donated_amount_in_cents INT, page INT)''')
+                        (donated_at DATETIME, id VARCHAR(8), donated_amount_in_cents INT, page INT, event_id VARCHAR(8))''')
     cursor.execute ('''CREATE TABLE IF NOT EXISTS last_run
-                        (created_at datetime, id VARCHAR(8), last_page INT)''')
-    cursor.execute ('''SELECT last_page FROM last_run''')
+                        (created_at datetime, id VARCHAR(8), last_page INT, event_id VARCHAR(8))''')
+    cursor.execute ('SELECT last_page FROM last_run WHERE event_id=%s',(old_event,))
     entry = cursor.fetchone()
     if entry is None:
-        print("NO cached ENTRY FOUND, initializing the first one.")
+        print("NO cached ENTRY FOUND, initializing the first ones.")
         cursor.execute("""INSERT INTO last_run
-                        VALUES (NULL, NULL, 1)""")
+                        VALUES (NULL, NULL, 1,%s)""",(old_event,))
+        connection.commit()
+    cursor.execute ('''SELECT last_page FROM last_run where event_id=%s;''',(new_event,))
+    entry = cursor.fetchone()
+    if entry is None:
+        print("NO cached ENTRY FOUND, initializing the first ones.")
+        cursor.execute("""INSERT INTO last_run
+                        VALUES (NULL, NULL, 1,%s)""",(new_event,))
         connection.commit()
     cursor.close()
 
@@ -38,8 +45,10 @@ if __name__ == '__main__':
     username = config["database"].get('username')
     password = config["database"].get('password')
     database = config["database"].get('database')
+    oldevent = config["past_year"].get('event')
+    newevent = config["current_year"].get('event')
     connection = create_connection(username=username,password=password,address=address,database=database)
     if connection is not None:
         # print ("Success")
-        create_tables (connection)
+        create_tables (connection,oldevent,newevent)
         connection.close()

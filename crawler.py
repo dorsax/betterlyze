@@ -4,129 +4,107 @@ import os
 import requests
 import json 
 import setup
+import argparse
 from datetime import datetime as dt
 
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--old', action='store_true')
+args = parser.parse_args()
 
 config_filename = 'config.yml'
 cache_filename = 'cache.json'
 # get the config
 
+def crawl(year,per_cycle=None):
+    configstream = open(os.path.dirname(os.path.realpath(__file__))+os.path.sep+config_filename, 'r')
+    config = yaml.safe_load (configstream)
+    event = config[year].get('event')
+    per_page = config.get('per_page')
+    address = config["database"].get('address')
+    username = config["database"].get('username')
+    password = config["database"].get('password')
+    database = config["database"].get('database')
 
-configstream = open(os.path.dirname(os.path.realpath(__file__))+os.path.sep+config_filename, 'r')
-config = yaml.safe_load (configstream)
-event = config.get('event')
-per_page = config.get('per_page')
-db_file = config.get('database_name')
-address = config["database"].get('address')
-username = config["database"].get('username')
-password = config["database"].get('password')
-database = config["database"].get('database')
-
-max_pages_per_cycle = config.get('max_pages_per_cycle')
-
-try:
-    with open(cache_filename, 'r') as jsonFile:
-        cache = json.load(jsonFile)
-        jsonFile.close()
-except:
-    cache = {}
-currentpage = cache.get ('last_page',0)
-donors = cache.get ('user_count',0)
-last_id = cache.get ('last_id',-1)
-amount = cache.get ('amount',0) # get from cache: where has the last iteration stopped? As in which page.
+    if (per_cycle is None):
+        max_pages_per_cycle = config.get('max_pages_per_cycle')
+    else:
+        max_pages_per_cycle = per_cycle
 
 
-uri = 'https://api.betterplace.org/de/api_v4/fundraising_events/'+str(event)+'/opinions.json'
-parameters = '?order=created_at:ASC&per_page=%%per_page%%&page=%%page%%'
-page = 50000000 # ensures no data at all and gets the key param to be loaded: total_pages !
+    uri = 'https://api.betterplace.org/de/api_v4/fundraising_events/'+str(event)+'/opinions.json'
+    parameters = '?order=created_at:ASC&per_page=%%per_page%%&page=%%page%%'
+    page = 50000000 # ensures no data at all and gets the key param to be loaded: total_pages !
 
-def build_uri ():
-    return uri+parameters.replace('%%per_page%%',str(per_page)).replace('%%page%%',str(page))
-
-
-def fetch () :
-    return requests.get(build_uri()).json()
-
-def create_connection ():
-    return setup.create_connection(username=username,password=password,address=address,database=database)
-
-currentpage = 1
-last_id = -1
-# new cache from db:
-connection = create_connection()
-if connection is not None:
-    cursor = connection.cursor()
-    cursor.execute("SELECT id,page FROM donations ORDER BY donated_at DESC;")
-    
-    #rows = cursor.fetchall()
-    last_run = cursor.fetchone()
-    if type(last_run) == tuple:
-        currentpage = int(last_run[1])
-        last_id = int(last_run[0])
-        print (f'page is {currentpage} and last was {last_id}')
+    def build_uri ():
+        return uri+parameters.replace('%%per_page%%',str(per_page)).replace('%%page%%',str(page))
 
 
-jresponse = fetch()
+    def fetch () :
+        return requests.get(build_uri()).json()
 
-# do a maximum of x pages per cycle, but don't try to get more pages than available (results in NULL data)
-maxpages_fetched = jresponse['total_pages']
-maxpages = currentpage + max_pages_per_cycle  
-if maxpages > maxpages_fetched:
-    maxpages = maxpages_fetched
+    def create_connection ():
+        return setup.create_connection(username=username,password=password,address=address,database=database)
 
-# if no cache exists, do not check cached entries
-if (last_id==-1):
-    skip=False
-else:
-    skip=True
+    currentpage = 1
+    last_id = -1
+    # new cache from db:
+    connection = create_connection()
+    if connection is not None:
+        cursor = connection.cursor()
+        cursor.execute("SELECT id,page FROM donations WHERE event_id=%s ORDER BY donated_at DESC;",(event,))
+        
+        #rows = cursor.fetchall()
+        last_run = cursor.fetchone()
+        if type(last_run) == tuple:
+            currentpage = int(last_run[1])
+            last_id = int(last_run[0])
+            print (f'page is {currentpage} and last was {last_id}')
 
-cachetime = dt.now()
 
-# call all newly available pages
-for index in range(currentpage,maxpages+1):
-    page = index
-    response = fetch()
-    response = response['data']  # get the data from the page set above
-    if len(response) >= 0:
-        connection = create_connection()
-        if connection is not None:
-            cursor = connection.cursor()
-            for index2 in range (len(response)): # go through response
-                if (not(skip)): # if this entry should be skipped due to caching
-                    cursor.execute("INSERT INTO donations (donated_at,id,donated_amount_in_cents,page) VALUES (%s,%s,%s,%s)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0),page))
-                    last_id = response[len(response)-1].get('id',0) # set the latest id to the cache to avoid wrong caches
-                    donated_amount = response[index2].get('donated_amount_in_cents',0)
-                    if (donated_amount): # only count non-zero-amounts. those might have been deleted or anonymous
-                        amount += donated_amount
-                        donors += 1
-                    
-                if (skip & (last_id == response[index2].get("id"))): # latest index reached. checked after calculation to avoid double calcs
-                    skip = False
-            currentpage = page # set the latest page for caching
-            connection.commit()
-            connection.close()
-# print ((dt.now()-cachetime).seconds)
-# print (str(donors) + " donors donated "+ str(amount))
-# uri = 'https://api.betterplace.org/de/api_v4/fundraising_events/'+str(event)+'.json'
-# parameters = ''
-# response = fetch()
-# donors = response.get('donations_count')
-# amount = response.get('donated_amount_in_cents')
-# print (str(donors) + " donors donated "+ str(amount))
+    jresponse = fetch()
 
-# write all data into the cache
+    # do a maximum of x pages per cycle, but don't try to get more pages than available (results in NULL data)
+    maxpages_fetched = jresponse['total_pages']
+    maxpages = currentpage + max_pages_per_cycle  
+    if maxpages > maxpages_fetched:
+        maxpages = maxpages_fetched
 
-connection = create_connection()
-if connection is not None:
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO last_run (created_at,id,last_page) VALUES (%s,%s,%s)", (dt.now() ,last_id,currentpage))
-    connection.commit()
-    connection.close()
+    # if no cache exists, do not check cached entries
+    if (last_id==-1):
+        skip=False
+    else:
+        skip=True
 
-# cache['last_page']=currentpage
-cache['user_count']=donors
-# cache['last_id']=last_id
-cache['amount']=amount
-with open(cache_filename, 'w') as jsonFile:
-    json.dump(cache, jsonFile)
-    jsonFile.close()
+    # call all newly available pages
+    for index in range(currentpage,maxpages+1):
+        page = index
+        response = fetch()
+        response = response['data']  # get the data from the page set above
+        if len(response) >= 0:
+            connection = create_connection()
+            if connection is not None:
+                cursor = connection.cursor()
+                for index2 in range (len(response)): # go through response
+                    if (not(skip)): # if this entry should be skipped due to caching
+                        cursor.execute("INSERT INTO donations (donated_at,id,donated_amount_in_cents,page,event_id) VALUES (%s,%s,%s,%s,%s)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0),page,event))
+                        last_id = response[len(response)-1].get('id',0) # set the latest id to the cache to avoid wrong caches
+                        
+                    if (skip & (last_id == response[index2].get("id"))): # latest index reached. checked after calculation to avoid double calcs
+                        skip = False
+                currentpage = page # set the latest page for caching
+                connection.commit()
+                connection.close()
+
+    connection = create_connection()
+    if connection is not None:
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO last_run (created_at,id,last_page,event_id) VALUES (%s,%s,%s,%s)", (dt.now() ,last_id,currentpage,event,))
+        connection.commit()
+        connection.close()
+
+if __name__ == '__main__':
+    if args.old :
+        crawl("past_year",1000)
+    else:
+        crawl("current_year")
