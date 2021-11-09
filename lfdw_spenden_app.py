@@ -41,21 +41,21 @@ cache = Cache(app.server, config={
     'CACHE_DIR': 'cache-directory'
 })
 
-def process_data (dataframe):
+def process_data (dataframe,starttime=startdate,endtime=enddate):
     df=dataframe
     df['donated_amount_in_Euro'] = df.donated_amount_in_cents.div(100).round(2)
     df['cumulated_sum'] = df.donated_amount_in_Euro.cumsum(axis = 0, skipna = True)
     
     template_pie= {'donations': [0,0,0,0],'categories':['bis 10 €','10 bis 100 €','100 bis 1000 €', 'über 1000 €'],'donation_sum':[0,0,0,0]}
     maxtime=df['donated_at'].max()
-    if (maxtime>enddate):
-        maxtime=enddate
+    if (maxtime>endtime):
+        maxtime=endtime
     # 1st hour
-    template_times = {'timestamps': [ts(startdate.year,startdate.month,startdate.day,startdate.hour,0,0,0)], 'donors': [0], 'donations': [0]}
-    currenttime = startdate #
+    template_times = {'timestamps': [ts(starttime.year,starttime.month,starttime.day,starttime.hour,0,0,0)], 'donors': [0], 'donations': [0]}
+    currenttime = starttime #
     count=1
     while (currenttime <= maxtime):
-        currenttime = startdate+timedelta(hours=count)
+        currenttime = starttime+timedelta(hours=count)
         template_times['timestamps'].append(currenttime)
         template_times['donors'].append(0)
         template_times['donations'].append(0)
@@ -111,10 +111,10 @@ def query_data():
     df_new = pd.read_sql(sql='SELECT donated_at,donated_amount_in_cents FROM donations WHERE event_id=%s ORDER BY donated_at ASC',params=[current_event],con=connection,parse_dates=['donated_at'])
     
     time_between_events=startdate-startdate_last
-    df_old,df_pie,df_time=process_data(df_old)
+    df_old,df_pie,df_time=process_data(df_old,startdate_last,enddate_last)
 
     df_old['donated_at']=df_old['donated_at']+time_between_events
-    #df_time['timestamps']=df_time['timestamps']+time_between_events
+    df_time['timestamps']=df_time['timestamps']+time_between_events
     
     df_new,df_pie,df_time_new=process_data(df_new)
     
@@ -182,8 +182,9 @@ def update_app(n_clicks):
             'x':0.5,
             'xanchor': 'center',
             'yanchor': 'top'
-        })
-    
+        },
+        barmode='group',)
+
     hourlydonations = go.Figure(data=[
         go.Bar(name='2021', x=df_time['timestamps'], y=df_time['donations']),
         go.Bar(name='2020', x=df_time_old['timestamps'], y=df_time_old['donations']),
@@ -195,7 +196,8 @@ def update_app(n_clicks):
             'x':0.5,
             'xanchor': 'center',
             'yanchor': 'top'
-        })
+        },
+        barmode='group',)
     
     
     labels=df_pie['categories']
