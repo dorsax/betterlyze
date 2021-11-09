@@ -101,7 +101,7 @@ def process_data (dataframe,starttime=startdate,endtime=enddate):
     df=df.sort_values(by='donated_at', ascending=False) # newest to earliest
     df_time = pd.DataFrame(data=template_times)        
     df_pie= pd.DataFrame(data=template_pie)
-    return df,df_pie,df_time
+    return df,df_time,df_pie
 
 @cache.memoize(timeout=CACHE_TIME)
 def query_data():
@@ -111,18 +111,19 @@ def query_data():
     df_new = pd.read_sql(sql='SELECT donated_at,donated_amount_in_cents FROM donations WHERE event_id=%s ORDER BY donated_at ASC',params=[current_event],con=connection,parse_dates=['donated_at'])
     
     time_between_events=startdate-startdate_last
-    df_old,df_pie,df_time=process_data(df_old,startdate_last,enddate_last)
+    df_old,df_time,df_pie=process_data(df_old,startdate_last,enddate_last)
 
     df_old['donated_at']=df_old['donated_at']+time_between_events
     df_time['timestamps']=df_time['timestamps']+time_between_events
     
-    df_new,df_pie,df_time_new=process_data(df_new)
+    df_new,df_time_new,df_pie=process_data(df_new)
     
     return df_new,df_pie,df_time_new,df_old,df_time
 
 
 
 @app.callback(
+    Output(component_id='spendensumme', component_property='children'),
     Output(component_id='Komplettgrafik', component_property='figure'),
     Output(component_id='Komplettabelle', component_property='data'),
     Output(component_id='10_100_k_pie', component_property='figure'),
@@ -207,7 +208,7 @@ def update_app(n_clicks):
     piecharts.add_trace (go.Pie(labels=labels,values=df_pie['donation_sum'],
                     name='Spenden',sort=False),1,2)
         
-    piecharts.update_traces(hole=.4, hovertemplate ="%{label}: <br>%{percent} </br> %{value}")
+    piecharts.update_traces(hole=.4, hovertemplate ="%{label}: <br>%{percent} </br>%{value}")
 
     piecharts.update_layout(
         legend_title_text='Spendenkategorie',
@@ -223,7 +224,9 @@ def update_app(n_clicks):
         annotations=[dict(text='Spenden', x=0.0, y=0.5, font_size=20, showarrow=False),
                     dict(text='Summen', x=1.0, y=0.5, font_size=20, showarrow=False)])
     
-    return linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    maxsum=str(df["cumulated_sum"].max())+" €"
+
+    return maxsum,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
 
 money = dash_table.FormatTemplate.money(2)
 columns = [
@@ -242,7 +245,11 @@ app.layout = html.Div([
         #     href='https://www.xn--lootfrdiewelt-0ob.de/'),
         html.A(html.Button('Source Code'),
             href='https://github.com/dorsax/betterplace_fetch', target="_blank"),
-
+        html.H4 (
+            id='spendensumme',
+            children="",
+            style={'z-index': 10,  'position': 'absolute',  'right': 0,  'top': 0},
+        ),
     ],),
     dcc.Graph(
         id='Komplettgrafik',
@@ -259,7 +266,7 @@ app.layout = html.Div([
     ),
     html.H4(
         id='Title_Table',
-        children='Letzte Spenden'
+        children='Letzte Spenden',
     ),
     dash_table.DataTable(
         id='Komplettabelle',
@@ -276,4 +283,4 @@ app.layout = html.Div([
 app.title='analytics'
 app._favicon=("favicon.png")
 if __name__ == '__main__':
-    app.run_server(debug=True,host="0.0.0.0")
+    app.run_server(debug=False,host="0.0.0.0")
