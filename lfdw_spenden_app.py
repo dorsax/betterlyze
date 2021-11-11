@@ -224,9 +224,10 @@ def update_app(n_clicks):
         annotations=[dict(text='Spenden', x=0.0, y=0.5, font_size=20, showarrow=False),
                     dict(text='Summen', x=1.0, y=0.5, font_size=20, showarrow=False)])
     
-    maxsum=str(df["cumulated_sum"].max())+" €"
+    maxsum=df["cumulated_sum"].max()
+    maxsumstr = f"{maxsum:.2f}"+" €"
 
-    return maxsum,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    return maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
 
 money = dash_table.FormatTemplate.money(2)
 columns = [
