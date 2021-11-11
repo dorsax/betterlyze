@@ -19,7 +19,7 @@ def create_tables (connection,old_event,new_event):
     cursor = connection.cursor(buffered=True)
     print ("Creating tables if not existing...")
     cursor.execute ('''CREATE TABLE IF NOT EXISTS donations
-                        (donated_at DATETIME, id VARCHAR(8), donated_amount_in_cents INT, page INT, event_id VARCHAR(8))''')
+                        (donated_at DATETIME, id VARCHAR(8), donated_amount_in_cents INT, page INT, event_id VARCHAR(8), was_zero INT DEFAULT 0)''')
     cursor.execute ('''CREATE TABLE IF NOT EXISTS last_run
                         (created_at datetime, id VARCHAR(8), last_page INT, event_id VARCHAR(8))''')
     cursor.execute ('SELECT last_page FROM last_run WHERE event_id=%s',(old_event,))

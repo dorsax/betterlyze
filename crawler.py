@@ -5,6 +5,7 @@ import requests
 import json 
 import setup
 import argparse
+import math
 from datetime import datetime as dt
 
 parser = argparse.ArgumentParser()
@@ -33,6 +34,7 @@ def crawl(year,per_cycle=None):
 
 
     uri = 'https://api.betterplace.org/de/api_v4/fundraising_events/'+str(event)+'/opinions.json'
+    uri_overview = 'https://api.betterplace.org/de/api_v4/fundraising_events/'+str(event)+'.json'
     parameters = '?order=created_at:ASC&per_page=%%per_page%%&page=%%page%%'
     page = 50000000 # ensures no data at all and gets the key param to be loaded: total_pages !
 
@@ -87,7 +89,10 @@ def crawl(year,per_cycle=None):
                 cursor = connection.cursor()
                 for index2 in range (len(response)): # go through response
                     if (not(skip)): # if this entry should be skipped due to caching
-                        cursor.execute("INSERT INTO donations (donated_at,id,donated_amount_in_cents,page,event_id) VALUES (%s,%s,%s,%s,%s)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0),page,event))
+                        setwaszero=0
+                        if response[index2].get('donated_amount_in_cents',0)==0:
+                            setwaszero=1
+                        cursor.execute("INSERT INTO donations (donated_at,id,donated_amount_in_cents,page,event_id,was_zero) VALUES (%s,%s,%s,%s,%s,%s)", (response[index2].get('created_at',0), response[index2].get('id',-1),response[index2].get('donated_amount_in_cents',0),page,event,setwaszero))
                         last_id = response[len(response)-1].get('id',0) # set the latest id to the cache to avoid wrong caches
                         
                     if (skip & (last_id == response[index2].get("id"))): # latest index reached. checked after calculation to avoid double calcs
@@ -96,9 +101,22 @@ def crawl(year,per_cycle=None):
                 connection.commit()
                 connection.close()
 
+    uri = uri_overview
+    endamount=fetch().get('donated_amount_in_cents')
     connection = create_connection()
     if connection is not None:
         cursor = connection.cursor()
+        cursor.execute("SELECT COUNT(was_zero) FROM donations WHERE was_zero=1 AND event_id=%s;",(event,))
+        entries = cursor.fetchone()[0]
+        if entries>0:
+            cursor.execute("SELECT SUM(donated_amount_in_cents) FROM donations WHERE was_zero=0 AND event_id=%s;",(event,))
+            calcamount = cursor.fetchone()[0]
+            amountperentry = (endamount-calcamount)/entries
+            amountperentry = math.floor(amountperentry)
+            lastentry = (endamount-calcamount)-(entries-1)*amountperentry
+            cursor.execute("UPDATE donations SET donated_amount_in_cents=%s WHERE was_zero=1 AND event_id=%s",((amountperentry,event)))
+            cursor.execute("UPDATE donations SET donated_amount_in_cents=%s WHERE was_zero=1 AND event_id=%s ORDER BY donated_at DESC LIMIT 1",((lastentry,event)))
+
         cursor.execute("INSERT INTO last_run (created_at,id,last_page,event_id) VALUES (%s,%s,%s,%s)", (dt.now() ,last_id,currentpage,event,))
         connection.commit()
         connection.close()
