@@ -130,8 +130,9 @@ def query_data():
     Output(component_id='hourly_donations', component_property='figure'),
     Output(component_id='hourly_donors', component_property='figure'),
     Input('button_reload', 'n_clicks'),
+    Input('interval-component', 'n_intervals'),
 )
-def update_app(n_clicks):
+def update_app(n_clicks=0,n_intervals=0):
     
     df,df_pie,df_time,df_old,df_time_old = query_data()
 
@@ -277,6 +278,11 @@ app.layout = html.Div([
     ),
     html.Footer(
         dcc.Markdown(footer_text)        
+    ),
+    dcc.Interval(
+        id='interval-component',
+        interval=3*60*1000, # in milliseconds
+        n_intervals=0,
     ),
 ])
 
