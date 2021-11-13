@@ -15,6 +15,8 @@ from plotly.subplots import make_subplots
 from dash.dash_table.Format import Format, Group, Prefix, Scheme, Symbol
 from dash import dash_table
 from flask_caching import Cache
+import dash_daq as daq
+from dash.exceptions import PreventUpdate
 
 config_filename = 'config.yml'
 configstream = open(os.path.dirname(os.path.realpath(__file__))+os.path.sep+config_filename, 'r')
@@ -129,9 +131,16 @@ def query_data():
     Output(component_id='10_100_k_pie', component_property='figure'),
     Output(component_id='hourly_donations', component_property='figure'),
     Output(component_id='hourly_donors', component_property='figure'),
+    Input('refresh_switch', 'on'),
     Input('button_reload', 'n_clicks'),
+    Input('interval-component', 'n_intervals'),
 )
-def update_app(n_clicks):
+def update_app(on,n_clicks=0,n_intervals=0):
+    ctx = dash.callback_context
+    if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
+        raise PreventUpdate
+    if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
+        raise PreventUpdate
     
     df,df_pie,df_time,df_old,df_time_old = query_data()
 
@@ -224,9 +233,10 @@ def update_app(n_clicks):
         annotations=[dict(text='Spenden', x=0.0, y=0.5, font_size=20, showarrow=False),
                     dict(text='Summen', x=1.0, y=0.5, font_size=20, showarrow=False)])
     
-    maxsum=str(df["cumulated_sum"].max())+" €"
+    maxsum=df["cumulated_sum"].max()
+    maxsumstr = f"{maxsum:.2f}"+" €"
 
-    return maxsum,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    return maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
 
 money = dash_table.FormatTemplate.money(2)
 columns = [
@@ -234,9 +244,23 @@ columns = [
     dict(id='donated_amount_in_Euro', name='Spende', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
 ]
 
+description = '''
+**Beschreibung**
+
+Die hier dargestellten Daten kommen von der Betterplace-API und stellen die Verläufe der Jahre 2020 und 2021 dar.
+Die Ringdiagramme beziehen sich nur auf das aktuelle Jahr.
+
+**Bedienung**
+
+Die einzenen Grafiken können gezoomt werden. Doppelklick setzt den Zoom zurück. Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss. 
+Der **Reload-Button** aktualisiert alle Grafiken. Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatisch alle 3 Minuten aktualisiert. Dabei werden aktuell auch alle Ansichten zurückgesetzt.
+Der Autoreload kann ausgeschaltet werden.
+'''
+
 footer_text = '''
 © dor_sax & nib0t. Source code available [on GitHub](https://github.com/dorsax/betterplace_fetch)
 '''
+
 app.layout = html.Div([
     html.Div([
         html.Button("Reload", id="button_reload", 
@@ -245,12 +269,20 @@ app.layout = html.Div([
         #     href='https://www.xn--lootfrdiewelt-0ob.de/'),
         html.A(html.Button('Source Code'),
             href='https://github.com/dorsax/betterplace_fetch', target="_blank"),
+        html.Center(daq.BooleanSwitch(
+            id='refresh_switch',
+            on=True,
+            label="Autoreload",
+            labelPosition="top",
+        ),),
         html.H4 (
             id='spendensumme',
             children="",
             style={'z-index': 10,  'position': 'absolute',  'right': 0,  'top': 0},
         ),
+       
     ],),
+    dcc.Markdown(description),
     dcc.Graph(
         id='Komplettgrafik',
         #figure=fig
@@ -277,6 +309,11 @@ app.layout = html.Div([
     ),
     html.Footer(
         dcc.Markdown(footer_text)        
+    ),
+    dcc.Interval(
+        id='interval-component',
+        interval=3*60*1000, # in milliseconds
+        n_intervals=0,
     ),
 ])
 
