@@ -225,15 +225,26 @@ def update_app(n_clicks=0,n_intervals=0):
         annotations=[dict(text='Spenden', x=0.0, y=0.5, font_size=20, showarrow=False),
                     dict(text='Summen', x=1.0, y=0.5, font_size=20, showarrow=False)])
     
-    maxsum=str(df["cumulated_sum"].max())+" €"
+    maxsum=df["cumulated_sum"].max()
+    maxsumstr = f"{maxsum:.2f}"+" €"
 
-    return maxsum,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    return maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
 
 money = dash_table.FormatTemplate.money(2)
 columns = [
     dict(id='donated_at', name='Zeitpunkt'),
     dict(id='donated_amount_in_Euro', name='Spende', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
 ]
+
+description = '''
+## Beschreibung
+Die hier dargestellten Daten kommen von der Betterplace-API und stellen die Verläufe der Jahre 2020 und 2021 dar.
+Die Ringdiagramme beziehen sich nur auf das aktuelle Jahr.
+
+## Bedienung
+Die einzenen Grafiken können gezoomt werden. Doppelklick setzt den Zoom zurück. Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss. 
+Der **Reload-Button** aktualisiert alle Grafiken. Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend nicht automatisch aktualisiert.
+'''
 
 footer_text = '''
 © dor_sax & nib0t. Source code available [on GitHub](https://github.com/dorsax/betterplace_fetch)
@@ -252,6 +263,7 @@ app.layout = html.Div([
             style={'z-index': 10,  'position': 'absolute',  'right': 0,  'top': 0},
         ),
     ],),
+    dcc.Markdown(description),
     dcc.Graph(
         id='Komplettgrafik',
         #figure=fig
