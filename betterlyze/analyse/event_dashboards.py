@@ -126,6 +126,8 @@ def query_data(event_id_old, event_id_new):
 
 
 @app.callback(
+    Output(component_id='event_id_old', component_property='options'),
+    Output(component_id='event_id_new', component_property='options'),
     Output(component_id='spendensumme', component_property='children'),
     Output(component_id='Komplettgrafik', component_property='figure'),
     Output(component_id='Komplettabelle', component_property='data'),
@@ -147,13 +149,18 @@ def update_app(
             #n_intervals=0,
             ):
 
-    try:
-        event_old = Event.objects.get(pk=event_id_old)
-        event_new = Event.objects.get(pk=event_id_new)
-    except Exception as exc:
-        raise exc
+    all_events = Event.objects.all().values('id','description')
+    all_events_dropdown = []
+    for event in all_events:
+        all_events_dropdown.append({
+            'label' : event['description'],
+            'value' : event['id'],
+        })
 
-    
+    event_old = Event.objects.get(pk=event_id_old)
+    event_new = Event.objects.get(pk=event_id_new)
+
+
     # ctx = dash.callback_context
     # if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
     #     raise PreventUpdate
@@ -243,7 +250,8 @@ def update_app(
     maxsum=df["cumulated_sum"].max()
     maxsumstr = f"{maxsum:.2f}"+" €"
 
-    return maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    return all_events_dropdown, all_events_dropdown, maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    
 
 money = dash_table.FormatTemplate.money(2)
 columns = [
@@ -289,14 +297,24 @@ app.layout = html.Div([
         ),
        
     ],),
-    dcc.Input(id='event_id_old', value = "41191"),
-    dcc.Input(id='event_id_new', value = "41191"),
+    dcc.Dropdown(id='event_id_new', options=[
+        {
+            'label' : 'LFDW1',
+            'value' : '39434',
+        }
+    ], value=39434),
+    dcc.Dropdown(id='event_id_old', options=[
+        {
+            'label' : 'LFDW1',
+            'value' : '39434',
+        }
+    ], value=39434),
     dcc.Markdown(description),
     dcc.Graph(
         id='Komplettgrafik',
         #figure=fig
     ),
-    dcc.Graph(
+    dcc.Graph( 
         id="10_100_k_pie"
     ),
     dcc.Graph(
