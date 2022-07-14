@@ -19,4 +19,5 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('analyse/', include('analyse.urls')),
+    path('django_plotly_dash/', include('django_plotly_dash.urls')),
 ]

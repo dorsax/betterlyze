@@ -1,0 +1,11 @@
+<p>
+{{ event1 }} <br>
+vs. <br>
+{{event2}} <br>
+</p>
+
+<div style="height: 5000">
+{%load plotly_dash%}
+
+{%plotly_app name="comparison" %}
+</div>
