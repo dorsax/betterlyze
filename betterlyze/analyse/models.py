@@ -9,6 +9,12 @@ class Event(models.Model):
     end = models.DateTimeField('end of the event')
     description = models.CharField(max_length=2000)
 
+    def year(self):
+        return self.start.year
+    
+    def __str__ (self):
+        return ("[{year}] {name}".format(year=self.year(),name=self.description))
+
 class Donation(models.Model):
     id = models.CharField(primary_key=True,max_length=64)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
