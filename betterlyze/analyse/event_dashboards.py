@@ -163,10 +163,10 @@ def update_app(
     df,df_pie,df_time,df_old,df_time_old = query_data(event_id_old, event_id_new)
     
     linechart = go.Figure( data=[
-        go.Scatter(name='2021',
+        go.Scatter(name=event_new.description,
             x=df["donated_at"],
             y=df["cumulated_sum"],),
-        go.Scatter(name='2020',
+        go.Scatter(name=event_old.description,
             x=df_old["donated_at"],
             y=df_old["cumulated_sum"],),
     ])
@@ -189,8 +189,8 @@ def update_app(
             'yanchor': 'top'
         })
     hourlydonor = go.Figure(data=[
-        go.Bar(name='2021', x=df_time['timestamps'], y=df_time['donors']),
-        go.Bar(name='2020', x=df_time_old['timestamps'], y=df_time_old['donors']),        
+        go.Bar(name=event_new.description, x=df_time['timestamps'], y=df_time['donors']),
+        go.Bar(name=event_old.description, x=df_time_old['timestamps'], y=df_time_old['donors']),        
     ])
     hourlydonor.update_layout(
         title={
@@ -203,8 +203,8 @@ def update_app(
         barmode='group',)
 
     hourlydonations = go.Figure(data=[
-        go.Bar(name='2021', x=df_time['timestamps'], y=df_time['donations']),
-        go.Bar(name='2020', x=df_time_old['timestamps'], y=df_time_old['donations']),
+        go.Bar(name=event_new.description, x=df_time['timestamps'], y=df_time['donations']),
+        go.Bar(name=event_old.description, x=df_time_old['timestamps'], y=df_time_old['donations']),
     ])
     hourlydonations.update_layout(
         title={
