@@ -39,10 +39,13 @@ def process_data (dataframe,starttime,endtime):
     
     template_pie= {'donations': [0,0,0,0],'categories':['bis 10 €','10 bis 100 €','100 bis 1000 €', 'über 1000 €'],'donation_sum':[0,0,0,0]}
     maxtime=df['donated_at'].max()
+
     if (maxtime>endtime):
         maxtime=endtime
     # 1st hour
-    template_times = {'timestamps': [ts(starttime.year,starttime.month,starttime.day,starttime.hour,0,0,0)], 'donors': [0], 'donations': [0]}
+                    
+    breakpoint()
+    template_times = {'timestamps': [ts(year=starttime.year,month=starttime.month,day=starttime.day,hour=starttime.hour,tz='UTC')], 'donors': [0], 'donations': [0]}
     currenttime = starttime #
     count=1
     while (currenttime <= maxtime):
@@ -101,22 +104,21 @@ def query_data(event_id_old, event_id_new):
         event_old = Event.objects.get(pk=event_id_old)
         event_new = Event.objects.get(pk=event_id_new)
 
-        breakpoint()
         # df_old = pd.read_sql(sql='SELECT donated_at,donated_amount_in_cents FROM donations WHERE event_id=%s ORDER BY donated_at ASC',params=[last_event],con=connection,parse_dates=['donated_at'])
         df_old = pd.DataFrame.from_records(Donation.objects.filter(event_id=event_id_old).values())
         # df_new = pd.read_sql(sql='SELECT donated_at,donated_amount_in_cents FROM donations WHERE event_id=%s ORDER BY donated_at ASC',params=[current_event],con=connection,parse_dates=['donated_at'])
         df_new = pd.DataFrame.from_records(Donation.objects.filter(event_id=event_id_new).values())
 
-        pd.to_datetime(df_old['donated_at']).apply(lambda x: x.date())
-        pd.to_datetime(df_new['donated_at']).apply(lambda x: x.date())
+        # pd.to_datetime(df_old['donated_at']).apply(lambda x: x.date())
+        # pd.to_datetime(df_new['donated_at']).apply(lambda x: x.date())
 
-        time_between_events=event_new.start-event_old.start
-        df_old,df_time,df_pie=process_data(df_old,event_old.start,event_old.end)
+        time_between_events=ts(event_new.start)-ts(event_old.start)
+        df_old,df_time,df_pie=process_data(df_old,ts(event_old.start),ts(event_old.end))
 
         df_old['donated_at']=df_old['donated_at']+time_between_events
         df_time['timestamps']=df_time['timestamps']+time_between_events
         
-        df_new,df_time_new,df_pie=process_data(df_new,event_new.start,event_new.end)
+        df_new,df_time_new,df_pie=process_data(df_new,ts(event_new.start),ts(event_new.end))
     except Exception as exc:
         raise exc
 
@@ -154,11 +156,11 @@ def update_app(
         raise exc
 
     
-    ctx = dash.callback_context
-    if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
-        raise PreventUpdate
-    if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
-        raise PreventUpdate
+    # ctx = dash.callback_context
+    # if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
+    #     raise PreventUpdate
+    # if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
+    #     raise PreventUpdate
     
     df,df_pie,df_time,df_old,df_time_old = query_data(event_id_old, event_id_new)
     
@@ -172,13 +174,13 @@ def update_app(
     ])
     # change the graph to only show the current maximum time
     maxentry=df["donated_at"].max()
-    if (event_new.end>=maxentry) and (maxentry>=event_new.start):
+    if (ts(event_new.end)>=maxentry) and (maxentry>=ts(event_new.start)):
         linechart.update_xaxes(
-            range=[event_new.start,maxentry],
+            range=[ts(event_new.start),maxentry],
         )
     else:
         linechart.update_xaxes(
-            range=[event_new.start,event_new.end],
+            range=[ts(event_new.start),ts(event_new.end)],
         )
     linechart.update_layout(
         title={
