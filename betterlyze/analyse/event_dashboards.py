@@ -124,10 +124,24 @@ def query_data(event_id_old, event_id_new):
     
     return df_new,df_pie,df_time_new,df_old,df_time
 
-
 @app.callback(
     Output(component_id='event_id_old', component_property='options'),
     Output(component_id='event_id_new', component_property='options'),
+    Input(component_id='event_id_old', component_property='value'),
+    Input(component_id='event_id_new', component_property='value'),
+)
+def update_dropdowns (event_id_old, event_id_new):
+    all_events = Event.objects.all().values('id','description')
+    all_events_dropdown = []
+    for event in all_events:
+        all_events_dropdown.append({
+            'label' : event['description'],
+            'value' : event['id'],
+        })
+    return all_events_dropdown, all_events_dropdown
+
+
+@app.callback(
     Output(component_id='spendensumme', component_property='children'),
     Output(component_id='Komplettgrafik', component_property='figure'),
     Output(component_id='Komplettabelle', component_property='data'),
@@ -144,18 +158,10 @@ def query_data(event_id_old, event_id_new):
 def update_app(
             event_id_old, 
             event_id_new, 
-            #n_clicks=0,
-            on,
+            n_clicks=0,
+            #on,
             #n_intervals=0,
             ):
-
-    all_events = Event.objects.all().values('id','description')
-    all_events_dropdown = []
-    for event in all_events:
-        all_events_dropdown.append({
-            'label' : event['description'],
-            'value' : event['id'],
-        })
 
     event_old = Event.objects.get(pk=event_id_old)
     event_new = Event.objects.get(pk=event_id_new)
@@ -250,7 +256,7 @@ def update_app(
     maxsum=df["cumulated_sum"].max()
     maxsumstr = f"{maxsum:.2f}"+" €"
 
-    return all_events_dropdown, all_events_dropdown, maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    return maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
     
 
 money = dash_table.FormatTemplate.money(2)
