@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 
 from .models import Event
+from .crawler import crawl as external_crawl
 # Create your views here.
 
 def index(request):
@@ -18,4 +19,5 @@ def detail(request, event_id):
 
 def crawl(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
+    external_crawl(event_id=event_id,max_pages_per_cycle=2,per_page=10)
     return HttpResponseRedirect(reverse('analyse:detail', args=(event.id,)))
