@@ -6,3 +6,5 @@ mysql-connector-python
 dash
 flask_caching
 dash_daq
+Django
+mysqlclient

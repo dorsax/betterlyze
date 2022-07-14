@@ -133,3 +133,6 @@ cache.json
 cache.db
 config.yml
 cache-directory/
+
+# settings
+settings.py
