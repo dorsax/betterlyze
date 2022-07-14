@@ -21,7 +21,7 @@ def detail(request, event_id):
 
 def crawl(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
-    external_crawl(event_id=event_id,max_pages_per_cycle=2,per_page=10)
+    external_crawl(event_id=event_id)
     return HttpResponseRedirect(reverse('analyse:detail', args=(event.id,)))
 
 def compare (request, event_id_1, event_id_2):

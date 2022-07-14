@@ -43,8 +43,6 @@ def process_data (dataframe,starttime,endtime):
     if (maxtime>endtime):
         maxtime=endtime
     # 1st hour
-                    
-    breakpoint()
     template_times = {'timestamps': [ts(year=starttime.year,month=starttime.month,day=starttime.day,hour=starttime.hour,tz='UTC')], 'donors': [0], 'donations': [0]}
     currenttime = starttime #
     count=1

@@ -8,7 +8,7 @@ from .models import Event, Donation
 
 def crawl(event_id,max_pages_per_cycle=5000, per_page = 100):
     
-    
+
     try:
         event = Event.objects.get(pk=event_id)
     except Event.DoesNotExist as exc:
@@ -25,15 +25,16 @@ def crawl(event_id,max_pages_per_cycle=5000, per_page = 100):
     def fetch () :
         return requests.get(build_uri()).json()
 
-    breakpoint()
     # find last id somehow
     try:
-        lastdonation = Donation.objects.filter(event=event.id).order_by('-id')[0]
-        currentpage = lastdonation.page
-        last_id = lastdonation.id
-    except IndexError as exc:
+        donation_count = Donation.objects.filter(event=event.id).aggregate(Count('id'))['id__count']
+        currentpage = floor (donation_count/per_page)
+        if (donation_count%per_page==0):
+            currentpage -= 1
+        if (currentpage==0):
+            currentpage = 1
+    except Donation.DoesNotExist:
         currentpage = 1
-        last_id = -1
     
     jresponse = fetch()
 
@@ -43,26 +44,22 @@ def crawl(event_id,max_pages_per_cycle=5000, per_page = 100):
     if maxpages > maxpages_fetched:
         maxpages = maxpages_fetched
 
-    # if no cache exists, do not check cached entries
-    skip = (last_id!=-1)
-    breakpoint()
     # call all newly available pages
     for index in range(currentpage,maxpages+1):
         page = index
         response = fetch()
         response = response['data']  # get the data from the page set above
         if len(response) >= 0:
-            for index2 in range (len(response)): # go through response
-                if (not(skip)): # if this entry should be skipped due to caching
-                    setwaszero=0
-                    if response[index2].get('donated_amount_in_cents',0)==0:
-                        setwaszero=1
-                    Donation.objects.create (id=response[index2].get('id',-1),event_id=event.id,donated_amount_in_cents=response[index2].get('donated_amount_in_cents',0),page=page,donated_at=response[index2].get('created_at',0), was_zero=setwaszero)
+            for json_donation in response: # go through response
+                setwaszero=0
+                if json_donation.get('donated_amount_in_cents',0)==0:
+                    setwaszero=1
+                try:
+                    Donation.objects.get(event_id=event.id,id=json_donation.get('id',-1))
+                except Donation.DoesNotExist:
+                    Donation.objects.create (id=json_donation.get('id',-1),event_id=event.id,donated_amount_in_cents=json_donation.get('donated_amount_in_cents',0),page=page,donated_at=json_donation.get('created_at',0), was_zero=setwaszero)
                     
-                    last_id = response[len(response)-1].get('id',0) # set the latest id to the cache to avoid wrong caches
-                    
-                if (skip & (last_id == response[index2].get("id"))): # latest index reached. checked after calculation to avoid double calcs
-                    skip = False
+
 
 
     # Count all donations which are anonymized
