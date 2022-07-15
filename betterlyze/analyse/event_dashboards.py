@@ -16,6 +16,8 @@ from dash import dash_table
 from flask_caching import Cache
 import dash_daq as daq
 from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
+from dash import Input, Output, State, html
 
 from .models import Event, Donation
 
@@ -29,7 +31,7 @@ from .models import Event, Donation
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = DjangoDash('comparison',external_stylesheets=external_stylesheets)
+app = DjangoDash('comparison',external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 def process_data (dataframe,starttime,endtime):
@@ -140,8 +142,19 @@ def update_dropdowns (event_id_old, event_id_new):
         })
     return all_events_dropdown, all_events_dropdown
 
+@app.callback(
+    Output(component_id='graphs', component_property='style'),
+    Input(component_id='event_id_old', component_property='value'),
+)
+def show_hide_graphs (event_id_old):
+    if event_id_old is None:
+        return {'display': 'none'}
+    else:
+        return {'display': 'block'}
+
 
 @app.callback(
+    Output(component_id='loading-output-1', component_property='children'),
     Output(component_id='spendensumme', component_property='children'),
     Output(component_id='Komplettgrafik', component_property='figure'),
     Output(component_id='Komplettabelle', component_property='data'),
@@ -154,7 +167,6 @@ def update_dropdowns (event_id_old, event_id_new):
     Input('button_reload', 'n_clicks'),
     #Input('interval-component', 'n_intervals'),
 )
-
 def update_app(
             event_id_old, 
             event_id_new, 
@@ -256,7 +268,7 @@ def update_app(
     maxsum=df["cumulated_sum"].max()
     maxsumstr = f"{maxsum:.2f}"+" €"
 
-    return maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    return "",maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
     
 
 money = dash_table.FormatTemplate.money(2)
@@ -265,81 +277,146 @@ columns = [
     dict(id='donated_amount_in_Euro', name='Spende', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
 ]
 
-description = '''
-**Beschreibung**
-
-Die hier dargestellten Daten kommen von der Betterplace-API und stellen die Verläufe der Jahre 2020 und 2021 dar.
-Die Ringdiagramme beziehen sich nur auf das aktuelle Jahr.
-
-**Bedienung**
-
-Die einzenen Grafiken können gezoomt werden. Doppelklick setzt den Zoom zurück. Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss. 
-Der **Reload-Button** aktualisiert alle Grafiken. Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatisch alle 3 Minuten aktualisiert. Dabei werden aktuell auch alle Ansichten zurückgesetzt.
-Der Autoreload kann ausgeschaltet werden.
-'''
-
 footer_text = '''
 © dor_sax & nib0t. Source code available [on GitHub](https://github.com/dorsax/betterplace_fetch)
 '''
 
-app.layout = html.Div([
-    html.Div([
-        html.Button("Reload", id="button_reload", 
-        ),
-        # html.A(html.Button('Home'),
-        #     href='https://www.xn--lootfrdiewelt-0ob.de/'),
-        html.A(html.Button('Source Code'),
-            href='https://github.com/dorsax/betterplace_fetch', target="_blank"),
-        # html.Center(daq.BooleanSwitch(
-        #     id='refresh_switch',
-        #     on=True,
-        #     label="Autoreload",
-        #     labelPosition="top",
-        # ),),
-        html.H4 (
-            id='spendensumme',
-            children="",
-            style={'z-index': 10,  'position': 'absolute',  'right': 0,  'top': 0},
-        ),
-       
-    ],),
-    dcc.Dropdown(id='event_id_new', options=[
-        {
-            'label' : 'LFDW1',
-            'value' : '39434',
-        }
-    ], value=39434),
-    dcc.Dropdown(id='event_id_old', options=[
-        {
-            'label' : 'LFDW1',
-            'value' : '39434',
-        }
-    ], value=39434),
-    dcc.Markdown(description),
-    dcc.Graph(
-        id='Komplettgrafik',
-        #figure=fig
-    ),
-    dcc.Graph( 
-        id="10_100_k_pie"
-    ),
-    dcc.Graph(
-        id="hourly_donations"
-    ),
-    dcc.Graph(
-        id="hourly_donors"
-    ),
-    html.H4(
-        id='Title_Table',
-        children='Letzte Spenden',
-    ),
-    dash_table.DataTable(
-        id='Komplettabelle',
-        #data=df.to_dict('records')
-        columns=columns,
-        page_size=20,
+description = '''
+# Beschreibung
 
+Die hier dargestellten Daten kommen von der Betterplace-API und stellen die Verläufe der gewählten Events dar.
+Die Ringdiagramme beziehen sich nur auf das erste Event.
+
+## Bedienung 
+
+In den oberen beiden Dropdowns kann ausgewählt werden, welches Event angezeigt und verglichen werden soll. \
+Die einzenen Grafiken können gezoomt werden. Doppelklick setzt den Zoom zurück. Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss. 
+Der **Reload-Button** aktualisiert alle Grafiken. Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatisch alle 3 Minuten aktualisiert. Dabei werden aktuell auch alle Ansichten zurückgesetzt.
+Der Autoreload kann ausgeschaltet werden.
+
+## Herausgeber und Source Code
+
+''' + footer_text
+
+
+@app.callback(
+    Output("offcanvas", "is_open"),
+    Input("open-offcanvas", "n_clicks"),
+    [State("offcanvas", "is_open")],
+)
+def toggle_offcanvas(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open
+
+navbar = dbc.Navbar(
+    dbc.Container(
+        [
+            dbc.NavbarBrand("LFDW", href="#"),
+            dbc.NavbarToggler(id="navbar-toggler3"),
+            dbc.Collapse(
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            dbc.Button(
+                                "Reload", id="button_reload",color="primary", n_clicks=0, className="ms-2"
+                            ),
+                            #dbc.Input(type="search", placeholder="Search")
+                        ),
+                        dbc.Col(
+                            dbc.Button(
+                                "Hilfe", color="primary", id='open-offcanvas', n_clicks=0, className="ms-2"
+                            ),
+                            # set width of button column to auto to allow
+                            # search box to take up remaining space.
+                            width="auto",
+                        ),
+                    ],
+                    # add a top margin to make things look nice when the navbar
+                    # isn't expanded (mt-3) remove the margin on medium or
+                    # larger screens (mt-md-0) when the navbar is expanded.
+                    # keep button and search box on same row (flex-nowrap).
+                    # align everything on the right with left margin (ms-auto).
+                    className="g-0 ms-auto flex-nowrap mt-3 mt-md-0",
+                    align="center",
+                ),
+                id="navbar-collapse3",
+                navbar=True,
+            ),
+        ]
     ),
+    className="mb-5",
+)
+
+
+app.layout = html.Div([
+    navbar,
+    # html.Div([
+    #     # html.Button("Reload", id="button_reload", 
+    #     # ),
+    #     # html.A(html.Button('Home'),
+    #     #     href='https://www.xn--lootfrdiewelt-0ob.de/'),
+    #     html.A(html.Button('Source Code'),
+    #         href='https://github.com/dorsax/betterplace_fetch', target="_blank"),
+    #     # html.Center(daq.BooleanSwitch(
+    #     #     id='refresh_switch',
+    #     #     on=True,
+    #     #     label="Autoreload",
+    #     #     labelPosition="top",
+    #     # ),),
+    # ],),
+    html.Div(
+    [
+        dcc.Dropdown(id='event_id_new', style={'width' :'50%'}),
+        dcc.Dropdown(id='event_id_old', style={'width' :'50%'}),
+    ], ),
+    html.Div(
+    [
+        dbc.Offcanvas(
+            dcc.Markdown(description),
+            id="offcanvas",
+            title="Hilfe und Über",
+            is_open=False,
+            placement='end',
+        ),
+    ]),
+    dcc.Loading(
+        id="loading-1",
+        type="default",
+        children=html.Div(id="loading-output-1",style = {'display': 'none'})
+    ),
+    html.Div([
+                html.Div([
+                    html.H4 ("Gesamtsumme: "),
+                    html.H4 (
+                            id='spendensumme',
+                            children="",
+                        ),
+                ], style = { 'display' : '-webkit-flex','display': 'flex' }),
+                dcc.Graph(
+                    id='Komplettgrafik',
+                    #figure=fig
+                ),
+                dcc.Graph( 
+                    id="10_100_k_pie"
+                ),
+                dcc.Graph(
+                    id="hourly_donations"
+                ),
+                dcc.Graph(
+                    id="hourly_donors"
+                ),
+                html.H4(
+                    id='Title_Table',
+                    children='Letzte Spenden',
+                ),
+                dash_table.DataTable(
+                    id='Komplettabelle',
+                    #data=df.to_dict('records')
+                    columns=columns,
+                    page_size=20,
+                ),
+            ],id='graphs',),
     html.Footer(
         dcc.Markdown(footer_text)        
     ),

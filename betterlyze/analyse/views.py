@@ -31,8 +31,14 @@ def compare (request, event_id_1, event_id_2):
         'event1': event1,
         'event2' : event2,
         'dash_context' : {
-        'event_old' : event_id_1,
-        'event_new' : event_id_2,
+        'event_old' : {
+            'value' : event1.id,
+            'label' : event1.description,
+        },
+        'event_new' : {
+            'value' : event2.id,
+            'label' : event2.description,
+        },
         },
     }
     return render(request, 'analyse/compare.html', context)

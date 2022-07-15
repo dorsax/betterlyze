@@ -9,3 +9,4 @@ dash_daq
 Django
 mysqlclient
 django_plotly_dash
+dash_bootstrap_components
