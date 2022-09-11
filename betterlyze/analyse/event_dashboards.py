@@ -1,13 +1,9 @@
-import dash
 from django_plotly_dash import DjangoDash
-import yaml
 from dash import dash_table
 from dash import dcc
-from dash import html
 from pandas import Timestamp as ts
 from dash.dependencies import Input, Output
 from datetime import timedelta
-import plotly.express as px
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots

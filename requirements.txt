@@ -9,5 +9,5 @@ dash_daq
 Django
 mysqlclient
 django_plotly_dash
-dash_bootstrap_components
+dash_bootstrap_components>1
 django_cron
