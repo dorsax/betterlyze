@@ -141,6 +141,7 @@ def update_dropdowns (event_id_old, event_id_new):
 
 @app.callback(
     Output(component_id='graphs', component_property='style'),
+    Output(component_id='sums', component_property='style'),
     Input(component_id='event_id_old', component_property='value'),
 )
 def show_hide_graphs (event_id_old):
@@ -152,7 +153,8 @@ def show_hide_graphs (event_id_old):
 
 @app.callback(
     Output(component_id='loading-output-1', component_property='children'),
-    Output(component_id='spendensumme', component_property='children'),
+    Output(component_id='spendensumme_new', component_property='children'),
+    Output(component_id='spendensumme_old', component_property='children'),
     Output(component_id='Komplettgrafik', component_property='figure'),
     Output(component_id='Komplettabelle', component_property='data'),
     Output(component_id='10_100_k_pie', component_property='figure'),
@@ -265,7 +267,11 @@ def update_app(
     maxsum=df["cumulated_sum"].max()
     maxsumstr = f"{maxsum:.2f}"+" €"
 
-    return "",maxsumstr,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    maxsum_old=df_old["cumulated_sum"].max()
+    maxsumstr_old = f"{maxsum_old:.2f}"+" €"
+    
+
+    return "",maxsumstr, maxsumstr_old,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
     
 
 money = dash_table.FormatTemplate.money(2)
@@ -383,6 +389,12 @@ app.layout = html.Div([
                                 width="2",),
                 dbc.Col(dcc.Dropdown(id='event_id_new'),
                                 width="3",), #, style={'width' :'50%'})),
+                dbc.Col(html.Div([
+                    html.H4 (
+                            id='spendensumme_new',
+                            children="",
+                        ),
+                ], id = 'sums'),),
             ]
         ),
         dbc.Row(
@@ -391,6 +403,12 @@ app.layout = html.Div([
                                 width="2",),
                 dbc.Col(dcc.Dropdown(id='event_id_old'),
                                 width="3",), #s, style={'width' :'50%'})),
+                dbc.Col(html.Div([
+                    html.H4 (
+                            id='spendensumme_old',
+                            children="",
+                        ),
+                ], id = 'sums'),),
             ]
         ),
     ], ),
@@ -410,13 +428,6 @@ app.layout = html.Div([
         children=html.Div(id="loading-output-1",style = {'display': 'none'})
     ),
     html.Div([
-                html.Div([
-                    html.H4 ("Gesamtsumme: "),
-                    html.H4 (
-                            id='spendensumme',
-                            children="",
-                        ),
-                ], style = { 'display' : '-webkit-flex','display': 'flex' }),
                 dcc.Graph(
                     id='Komplettgrafik',
                     #figure=fig
