@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'analyse.apps.AnalyseConfig',
+    "django_cron",
 ]
 
 MIDDLEWARE = [
@@ -103,6 +104,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CRON_CLASSES = [
+    "analyse.cron.CronCrawl",
+    "analyse.cron.CronCrawlAll",
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
