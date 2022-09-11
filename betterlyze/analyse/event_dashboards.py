@@ -142,7 +142,7 @@ def update_dropdowns (event_id_old, event_id_new):
 @app.callback(
     Output(component_id='graphs', component_property='style'),
     Output(component_id='sums', component_property='style'),
-    Input(component_id='event_id_old', component_property='value'),
+    Input(component_id='event_id_new', component_property='value'),
 )
 def show_hide_graphs (event_id_old):
     style = {'display': 'none'}
@@ -176,8 +176,16 @@ def update_app(
             n_intervals=0,
             ):
 
-    event_old = Event.objects.get(pk=event_id_old)
-    event_new = Event.objects.get(pk=event_id_new)
+    try:
+        event_new = Event.objects.get(pk=event_id_new)
+    except Exception as exc:
+        raise exc
+    
+    try:
+        event_old = Event.objects.get(pk=event_id_old)
+    except Exception as exc:
+        event_old = event_new
+    
 
 
     ctx = dash.callback_context
@@ -186,7 +194,7 @@ def update_app(
     if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
         raise PreventUpdate
     
-    df,df_pie,df_time,df_old,df_time_old = query_data(event_id_old, event_id_new)
+    df,df_pie,df_time,df_old,df_time_old = query_data(event_old.id, event_new.id)
     
     linechart = go.Figure( data=[
         go.Scatter(name=event_new.description,
@@ -268,10 +276,12 @@ def update_app(
     
     maxsum=df["cumulated_sum"].max()
     maxsumstr = f"{maxsum:.2f}"+" €"
-
-    maxsum_old=df_old["cumulated_sum"].max()
-    maxsumstr_old = f"{maxsum_old:.2f}"+" €"
     
+    if event_id_old == None:
+        maxsumstr_old = ""
+    else:
+        maxsum_old=df_old["cumulated_sum"].max()
+        maxsumstr_old = f"{maxsum_old:.2f}"+" €"
 
     return "",maxsumstr, maxsumstr_old,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
     
