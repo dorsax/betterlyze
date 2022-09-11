@@ -281,13 +281,18 @@ description = '''
 # Beschreibung
 
 Die hier dargestellten Daten kommen von der Betterplace-API und stellen die Verläufe der gewählten Events dar.
-Die Ringdiagramme beziehen sich nur auf das erste Event.
+Die Ringdiagramme beziehen sich nur auf das aktuelle Event.
 
 ## Bedienung 
 
 In den oberen beiden Dropdowns kann ausgewählt werden, welches Event angezeigt und verglichen werden soll. \
-Die einzenen Grafiken können gezoomt werden. Doppelklick setzt den Zoom zurück. Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss. 
-Der **Reload-Button** aktualisiert alle Grafiken. Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatisch alle 3 Minuten aktualisiert. Dabei werden aktuell auch alle Ansichten zurückgesetzt.
+> Wenn nur ein Event gezeigt werden soll, kann dieses einfach zweimal ausgewählt werden. \
+Die einzenen Grafiken können gezoomt werden.
+Doppelklick setzt den Zoom zurück.
+Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss. 
+Der **Reload-Button** aktualisiert alle Grafiken. 
+Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatisch alle 3 Minuten aktualisiert. 
+Dabei werden aktuell auch alle Ansichten zurückgesetzt.
 Der Autoreload kann ausgeschaltet werden.
 
 ## Herausgeber und Source Code
@@ -363,8 +368,22 @@ app.layout = html.Div([
     # ],),
     html.Div(
     [
-        dcc.Dropdown(id='event_id_new', style={'width' :'50%'}),
-        dcc.Dropdown(id='event_id_old', style={'width' :'50%'}),
+        dbc.Row(
+            [
+                dbc.Col(html.Label ("Aktuelles Event", id='event_id_new_Label'),
+                                width="2",),
+                dbc.Col(dcc.Dropdown(id='event_id_new'),
+                                width="3",), #, style={'width' :'50%'})),
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(html.Label ("Vergangenes Event", id='event_id_old'),
+                                width="2",),
+                dbc.Col(dcc.Dropdown(id='event_id_old'),
+                                width="3",), #s, style={'width' :'50%'})),
+            ]
+        ),
     ], ),
     html.Div(
     [
