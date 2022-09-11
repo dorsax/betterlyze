@@ -18,6 +18,7 @@ from dash import Input, Output, State, html
 
 from .models import Event, Donation
 
+
 # current_event = config["current_year"].get('event')
 # last_event = config["past_year"].get('event')
 # startdate= ts(config["current_year"].get('starttime'))
@@ -318,7 +319,6 @@ Der Autoreload kann ausgeschaltet werden.
 
 ''' + footer_text
 
-
 @app.callback(
     Output("offcanvas", "is_open"),
     Input("open-offcanvas", "n_clicks"),
@@ -329,6 +329,33 @@ def toggle_offcanvas(n1, is_open):
         return not is_open
     return is_open
 
+def buildMenu ():
+    menu_items_static = [
+        dbc.DropdownMenuItem(divider=True),
+        dbc.DropdownMenuItem(
+                daq.BooleanSwitch(
+                    id='refresh_switch',
+                    on=True,
+                    label="Autoreload",
+                    labelPosition="left",
+                ),
+            ),
+        dbc.DropdownMenuItem(divider=True),
+        dbc.DropdownMenuItem("Hilfe", id='open-offcanvas', n_clicks=0, ),
+    ]
+    menu_items_dynamic = []
+    events = Event.objects.all().order_by('-start')
+    for event in events:
+        menu_items_dynamic.append(
+            dbc.DropdownMenuItem (
+                event.description,
+                href = f'/analyse/{event.id}',
+                external_link=True,
+            )
+        )
+
+    return menu_items_dynamic + menu_items_static
+
 navbar = dbc.Navbar(
     dbc.Container(
         [
@@ -338,27 +365,17 @@ navbar = dbc.Navbar(
                 dbc.Row(
                     [
                         dbc.Col(
-                            daq.BooleanSwitch(
-                                id='refresh_switch',
-                                on=True,
-                                label="Autoreload",
-                                labelPosition="bottom",
-                            ),
-                        ),
-                        dbc.Col(
                             dbc.Button(
                                 "Reload", id="button_reload",color="primary", n_clicks=0, className="ms-2"
                             ),
                             #dbc.Input(type="search", placeholder="Search")
                         ),
-                        dbc.Col(
-                            dbc.Button(
-                                "Hilfe", color="primary", id='open-offcanvas', n_clicks=0, className="ms-2"
-                            ),
-                            # set width of button column to auto to allow
-                            # search box to take up remaining space.
-                            width="auto",
-                        ),
+                        dbc.Col( dbc.DropdownMenu(
+                            id = 'eventmenu',
+                            label="Menü",
+                            children=buildMenu(),
+                            align_end=True
+                        )),
                     ],
                     # add a top margin to make things look nice when the navbar
                     # isn't expanded (mt-3) remove the margin on medium or
