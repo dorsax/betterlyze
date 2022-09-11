@@ -3,7 +3,9 @@
     <li> {{event.start}} - {{event.end}} </li>
 </ul>
 
-<form action="{% url 'analyse:crawl' event.id %}" method="post">
-{% csrf_token %}
-<input type="submit" value="Crawl">
-</form>
+{% if user.is_authenticated %}
+    <form action="{% url 'analyse:crawl' event.id %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Crawl">
+    </form>
+{% endif %}
