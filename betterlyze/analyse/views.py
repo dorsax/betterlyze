@@ -25,4 +25,4 @@ def crawl(request, event_id):
     return HttpResponseRedirect(reverse('analyse:detail', args=(event.id,)))
 
 def compare (request):
-    return render(request, 'analyse/compare_new.html')
+    return render(request, 'analyse/compare.html')
