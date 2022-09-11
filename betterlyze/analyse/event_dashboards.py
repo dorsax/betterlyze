@@ -145,10 +145,12 @@ def update_dropdowns (event_id_old, event_id_new):
     Input(component_id='event_id_old', component_property='value'),
 )
 def show_hide_graphs (event_id_old):
+    style = {'display': 'none'}
     if event_id_old is None:
-        return {'display': 'none'}
+        style = {'display': 'none'}
     else:
-        return {'display': 'block'}
+        style = {'display': 'block'}
+    return style, style
 
 
 @app.callback(
