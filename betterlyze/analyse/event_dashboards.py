@@ -1,4 +1,5 @@
 from django_plotly_dash import DjangoDash
+import dash
 from dash import dash_table
 from dash import dcc
 from pandas import Timestamp as ts
@@ -159,27 +160,27 @@ def show_hide_graphs (event_id_old):
     Output(component_id='hourly_donors', component_property='figure'),
     Input(component_id='event_id_old', component_property='value'),
     Input(component_id='event_id_new', component_property='value'),
-    #Input('refresh_switch', 'on'),
+    Input('refresh_switch', 'on'),
     Input('button_reload', 'n_clicks'),
-    #Input('interval-component', 'n_intervals'),
+    Input('interval-component', 'n_intervals'),
 )
 def update_app(
             event_id_old, 
             event_id_new, 
+            on,
             n_clicks=0,
-            #on,
-            #n_intervals=0,
+            n_intervals=0,
             ):
 
     event_old = Event.objects.get(pk=event_id_old)
     event_new = Event.objects.get(pk=event_id_new)
 
 
-    # ctx = dash.callback_context
-    # if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
-    #     raise PreventUpdate
-    # if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
-    #     raise PreventUpdate
+    ctx = dash.callback_context
+    if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
+        raise PreventUpdate
+    if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
+        raise PreventUpdate
     
     df,df_pie,df_time,df_old,df_time_old = query_data(event_id_old, event_id_new)
     
@@ -319,6 +320,14 @@ navbar = dbc.Navbar(
                 dbc.Row(
                     [
                         dbc.Col(
+                            daq.BooleanSwitch(
+                                id='refresh_switch',
+                                on=True,
+                                label="Autoreload",
+                                labelPosition="bottom",
+                            ),
+                        ),
+                        dbc.Col(
                             dbc.Button(
                                 "Reload", id="button_reload",color="primary", n_clicks=0, className="ms-2"
                             ),
@@ -435,11 +444,11 @@ app.layout = html.Div([
     html.Footer(
         dcc.Markdown(footer_text)        
     ),
-    # dcc.Interval(
-    #     id='interval-component',
-    #     interval=3*60*1000, # in milliseconds
-    #     n_intervals=0,
-    # ),
+    dcc.Interval(
+        id='interval-component',
+        interval=3*60*1000, # in milliseconds
+        n_intervals=0,
+    ),
 ])
 
 app.title='analytics'
