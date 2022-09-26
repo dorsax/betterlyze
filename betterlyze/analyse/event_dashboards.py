@@ -95,6 +95,88 @@ def process_data (dataframe,starttime,endtime):
     df_pie= pd.DataFrame(data=template_pie)
     return df,df_time,df_pie
 
+# rewritten for django context
+def process_event (event):
+    starttime = ts(event.start)
+    endtime = ts(event.end)
+    df = pd.DataFrame.from_records(Donation.objects.filter(event_id=event.id).values())
+    df['donated_amount_in_Euro'] = df.donated_amount_in_cents.div(100).round(2)
+    df['cumulated_sum'] = df.donated_amount_in_Euro.cumsum(axis = 0, skipna = True)
+    
+    template_pie= {'donations': [0,0,0,0],'categories':['bis 10 €','10 bis 100 €','100 bis 1000 €', 'über 1000 €'],'donation_sum':[0,0,0,0]}
+    maxtime=df['donated_at'].max()
+
+    if (maxtime>endtime):
+        maxtime=endtime
+    # 1st hour
+    # TODO: Change the UTC-marker to Django TimeZone
+    template_times = {'timestamps': [ts(year=starttime.year,month=starttime.month,day=starttime.day,hour=starttime.hour,tz='UTC')], 'donors': [0], 'donations': [0]}
+    currenttime = starttime #
+    count=1
+    while (currenttime <= maxtime):
+        currenttime = starttime+timedelta(hours=count)
+        template_times['timestamps'].append(currenttime)
+        template_times['donors'].append(0)
+        template_times['donations'].append(0)
+        count+=1
+        if (count>1000):
+            exit("Fatal error while computing timetables!")
+
+    haventfoundit = True
+
+    for index, row in df.iterrows():
+        if (row['donated_amount_in_cents']<1000):
+            template_pie['donations'][0] += 1
+            template_pie['donation_sum'][0] += row["donated_amount_in_Euro"]
+
+        elif (row['donated_amount_in_cents']<10000):
+            template_pie['donations'][1] += 1
+            template_pie['donation_sum'][1] += row["donated_amount_in_Euro"]
+
+        elif (row['donated_amount_in_cents']<100000):
+            template_pie['donations'][2] += 1
+            template_pie['donation_sum'][2] += row["donated_amount_in_Euro"]
+
+        elif (row['donated_amount_in_cents']>=100000):
+            template_pie['donations'][3] += 1
+            template_pie['donation_sum'][3] += row["donated_amount_in_Euro"]
+
+        if (False):#row['donated_at']<template_times['timestamps'][1]):
+            template_times['donors'][0]+=1
+            template_times['donations'][0]+=row['donated_amount_in_Euro']
+        else:
+            for index2 in range (0,len(template_times['timestamps'])-1):
+                if ((row['donated_at']>=template_times['timestamps'][index2]) and (row['donated_at']<=template_times['timestamps'][index2+1])):
+                    if (haventfoundit):
+                        haventfoundit=False
+                    template_times['donors'][index2]+=1
+                    template_times['donations'][index2]+=row['donated_amount_in_Euro']
+                    break
+        if (haventfoundit):
+            haventfoundit=False
+            template_times['donors'][len(template_times['timestamps'])-1]+=1
+            template_times['donations'][len(template_times['timestamps'])-1]+=row['donated_amount_in_Euro']
+
+    df=df.sort_values(by='donated_at', ascending=False) # newest to earliest
+    df_time = pd.DataFrame(data=template_times)        
+    df_pie= pd.DataFrame(data=template_pie)
+    return df,df_time,df_pie
+
+def compare_events (events):
+    df_all = list()
+    df_times = list()
+    df_pies = list()
+    event_to_be_compared_with = events[0]
+    for event in events :
+        df, df_time, df_pie = process_event(event)
+        time_between_events = ts(event_to_be_compared_with.start)-ts(event.start)
+        df['donated_at']=df['donated_at']+time_between_events
+        df_time['timestamps']=df_time['timestamps']+time_between_events
+        df_all.append(df)
+        df_times.append(df_time)
+        df_pies.append(df_pie)
+    return events, df_all, df_times, df_pies
+
 def query_data(event_id_old, event_id_new):
     
 
@@ -123,6 +205,20 @@ def query_data(event_id_old, event_id_new):
     
     
     return df_new,df_pie,df_time_new,df_old,df_time
+
+def query_events( event_id_new, event_ids_old = list()):
+    try:
+        events = list()
+        events.append(Event.objects.get(pk=event_id_new))
+        try:
+            print (event_ids_old)
+            for event_id in event_ids_old:
+                events.append(Event.objects.get(pk=event_id))
+        except Exception as exc:
+            pass
+        return compare_events(events)
+    except Exception as exc:
+        raise exc
 
 @app.callback(
     Output(component_id='event_id_old', component_property='options'),
@@ -182,6 +278,9 @@ def update_app(
     except Exception as exc:
         raise exc
     
+    event_ids_old = list()
+    event_ids_old.append(event_id_old)
+
     try:
         event_old = Event.objects.get(pk=event_id_old)
     except Exception as exc:
@@ -195,25 +294,46 @@ def update_app(
     if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
         raise PreventUpdate
     
-    df,df_pie,df_time,df_old,df_time_old = query_data(event_old.id, event_new.id)
+    # df,df_pie,df_time,df_old,df_time_old = query_data(event_old.id, event_new.id)
+    events, df_all, df_times, df_pies = query_events (event_id_new=event_id_new, event_ids_old=event_ids_old)
     
-    linechart = go.Figure( data=[
-        go.Scatter(name=event_new.description,
-            x=df["donated_at"],
-            y=df["cumulated_sum"],),
-        go.Scatter(name=event_old.description,
-            x=df_old["donated_at"],
-            y=df_old["cumulated_sum"],),
-    ])
+    # linechart = go.Figure( data=[
+    #     go.Scatter(name=events[0].description,
+    #         x=df_all[0]["donated_at"],
+    #         y=df_all[0]["cumulated_sum"],),
+    #     go.Scatter(name=events[1].description,
+    #         x=df_all[1]["donated_at"],
+    #         y=df_all[1]["cumulated_sum"],),
+    # ])
+    data_linechart=list()
+    data_hourlydonor= list()
+    data_hourlydonations = list()
+    for index in range(0,len(events)):
+        data_linechart.append(
+             go.Scatter(name=events[index].description,
+                x=df_all[index]["donated_at"],
+                y=df_all[index]["cumulated_sum"],),
+        )
+        data_hourlydonor.append(
+            go.Bar(name=events[index].description, x=df_times[index]['timestamps'], y=df_times[index]['donors'])
+        )
+        data_hourlydonations.append(
+            go.Bar(name=events[index].description, x=df_times[index]['timestamps'], y=df_times[index]['donations']),
+        )
+    linechart = go.Figure(data = data_linechart)
+    hourlydonor = go.Figure(data=data_hourlydonor)
+    hourlydonations = go.Figure(data=data_hourlydonations)
+    
+    
     # change the graph to only show the current maximum time
-    maxentry=df["donated_at"].max()
-    if (ts(event_new.end)>=maxentry) and (maxentry>=ts(event_new.start)):
+    maxentry=df_all[0]["donated_at"].max()
+    if (ts(events[0].end)>=maxentry) and (maxentry>=ts(events[0].start)):
         linechart.update_xaxes(
-            range=[ts(event_new.start),maxentry],
+            range=[ts(events[0].start),maxentry],
         )
     else:
         linechart.update_xaxes(
-            range=[ts(event_new.start),ts(event_new.end)],
+            range=[ts(events[0].start),ts(events[0].end)],
         )
     linechart.update_layout(
         title={
@@ -223,10 +343,7 @@ def update_app(
             'xanchor': 'center',
             'yanchor': 'top'
         })
-    hourlydonor = go.Figure(data=[
-        go.Bar(name=event_new.description, x=df_time['timestamps'], y=df_time['donors']),
-        go.Bar(name=event_old.description, x=df_time_old['timestamps'], y=df_time_old['donors']),        
-    ])
+
     hourlydonor.update_layout(
         title={
             'text': "Spender",
@@ -237,10 +354,6 @@ def update_app(
         },
         barmode='group',)
 
-    hourlydonations = go.Figure(data=[
-        go.Bar(name=event_new.description, x=df_time['timestamps'], y=df_time['donations']),
-        go.Bar(name=event_old.description, x=df_time_old['timestamps'], y=df_time_old['donations']),
-    ])
     hourlydonations.update_layout(
         title={
             'text': "Spenden",
@@ -252,11 +365,11 @@ def update_app(
         barmode='group',)
     
     
-    labels=df_pie['categories']
+    labels=df_pies[0]['categories']
     piecharts = make_subplots (rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
-    piecharts.add_trace (go.Pie(labels=labels,values=df_pie['donations'],
+    piecharts.add_trace (go.Pie(labels=labels,values=df_pies[0]['donations'],
                     name='Spender',sort=False),1,1)
-    piecharts.add_trace (go.Pie(labels=labels,values=df_pie['donation_sum'],
+    piecharts.add_trace (go.Pie(labels=labels,values=df_pies[0]['donation_sum'],
                     name='Spenden',sort=False),1,2)
         
     piecharts.update_traces(hole=.4, hovertemplate ="%{label}: <br>%{percent} </br>%{value}")
@@ -284,7 +397,7 @@ def update_app(
         maxsum_old=df_old["cumulated_sum"].max()
         maxsumstr_old = f"{maxsum_old:.2f}"+" €"
 
-    return "",maxsumstr, maxsumstr_old,linechart,df.to_dict('records'),piecharts, hourlydonations, hourlydonor
+    return "",maxsumstr, maxsumstr_old,linechart,df_all[0].to_dict('records'),piecharts, hourlydonations, hourlydonor
     
 
 money = dash_table.FormatTemplate.money(2)
