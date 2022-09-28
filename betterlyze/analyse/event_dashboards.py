@@ -31,70 +31,6 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = DjangoDash('comparison',external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-
-def process_data (dataframe,starttime,endtime):
-    df=dataframe
-    df['donated_amount_in_Euro'] = df.donated_amount_in_cents.div(100).round(2)
-    df['cumulated_sum'] = df.donated_amount_in_Euro.cumsum(axis = 0, skipna = True)
-    
-    template_pie= {'donations': [0,0,0,0],'categories':['bis 10 €','10 bis 100 €','100 bis 1000 €', 'über 1000 €'],'donation_sum':[0,0,0,0]}
-    maxtime=df['donated_at'].max()
-
-    if (maxtime>endtime):
-        maxtime=endtime
-    # 1st hour
-    template_times = {'timestamps': [ts(year=starttime.year,month=starttime.month,day=starttime.day,hour=starttime.hour,tz='UTC')], 'donors': [0], 'donations': [0]}
-    currenttime = starttime #
-    count=1
-    while (currenttime <= maxtime):
-        currenttime = starttime+timedelta(hours=count)
-        template_times['timestamps'].append(currenttime)
-        template_times['donors'].append(0)
-        template_times['donations'].append(0)
-        count+=1
-        if (count>1000):
-            exit("Fatal error while computing timetables!")
-
-    haventfoundit = True
-
-    for index, row in df.iterrows():
-        if (row['donated_amount_in_cents']<1000):
-            template_pie['donations'][0] += 1
-            template_pie['donation_sum'][0] += row["donated_amount_in_Euro"]
-
-        elif (row['donated_amount_in_cents']<10000):
-            template_pie['donations'][1] += 1
-            template_pie['donation_sum'][1] += row["donated_amount_in_Euro"]
-
-        elif (row['donated_amount_in_cents']<100000):
-            template_pie['donations'][2] += 1
-            template_pie['donation_sum'][2] += row["donated_amount_in_Euro"]
-
-        elif (row['donated_amount_in_cents']>=100000):
-            template_pie['donations'][3] += 1
-            template_pie['donation_sum'][3] += row["donated_amount_in_Euro"]
-
-        if (False):#row['donated_at']<template_times['timestamps'][1]):
-            template_times['donors'][0]+=1
-            template_times['donations'][0]+=row['donated_amount_in_Euro']
-        else:
-            for index2 in range (0,len(template_times['timestamps'])-1):
-                if ((row['donated_at']>=template_times['timestamps'][index2]) and (row['donated_at']<=template_times['timestamps'][index2+1])):
-                    if (haventfoundit):
-                        haventfoundit=False
-                    template_times['donors'][index2]+=1
-                    template_times['donations'][index2]+=row['donated_amount_in_Euro']
-                    break
-        if (haventfoundit):
-            haventfoundit=False
-            template_times['donors'][len(template_times['timestamps'])-1]+=1
-            template_times['donations'][len(template_times['timestamps'])-1]+=row['donated_amount_in_Euro']
-
-    df=df.sort_values(by='donated_at', ascending=False) # newest to earliest
-    df_time = pd.DataFrame(data=template_times)        
-    df_pie= pd.DataFrame(data=template_pie)
-    return df,df_time,df_pie
-
 # rewritten for django context
 def process_event (event):
     starttime = ts(event.start)
@@ -176,35 +112,6 @@ def compare_events (events):
         df_times.append(df_time)
         df_pies.append(df_pie)
     return events, df_all, df_times, df_pies
-
-def query_data(event_id_old, event_id_new):
-    
-
-    try:
-        event_old = Event.objects.get(pk=event_id_old)
-        event_new = Event.objects.get(pk=event_id_new)
-
-        # df_old = pd.read_sql(sql='SELECT donated_at,donated_amount_in_cents FROM donations WHERE event_id=%s ORDER BY donated_at ASC',params=[last_event],con=connection,parse_dates=['donated_at'])
-        df_old = pd.DataFrame.from_records(Donation.objects.filter(event_id=event_id_old).values())
-        # df_new = pd.read_sql(sql='SELECT donated_at,donated_amount_in_cents FROM donations WHERE event_id=%s ORDER BY donated_at ASC',params=[current_event],con=connection,parse_dates=['donated_at'])
-        df_new = pd.DataFrame.from_records(Donation.objects.filter(event_id=event_id_new).values())
-
-        # pd.to_datetime(df_old['donated_at']).apply(lambda x: x.date())
-        # pd.to_datetime(df_new['donated_at']).apply(lambda x: x.date())
-
-        time_between_events=ts(event_new.start)-ts(event_old.start)
-        df_old,df_time,df_pie=process_data(df_old,ts(event_old.start),ts(event_old.end))
-
-        df_old['donated_at']=df_old['donated_at']+time_between_events
-        df_time['timestamps']=df_time['timestamps']+time_between_events
-        
-        df_new,df_time_new,df_pie=process_data(df_new,ts(event_new.start),ts(event_new.end))
-    except Exception as exc:
-        raise exc
-
-    
-    
-    return df_new,df_pie,df_time_new,df_old,df_time
 
 def query_events( event_id_new, event_ids_old = list()):
     try:
