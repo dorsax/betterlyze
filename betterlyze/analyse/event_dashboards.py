@@ -339,7 +339,7 @@ def toggle_offcanvas(n1, is_open):
 
 def buildMenu ():
     menu_items_static = [
-        dbc.DropdownMenuItem(divider=True),
+        # dbc.DropdownMenuItem(divider=True),
         dbc.DropdownMenuItem(
                 daq.BooleanSwitch(
                     id='refresh_switch',
@@ -351,6 +351,7 @@ def buildMenu ():
         dbc.DropdownMenuItem(divider=True),
         dbc.DropdownMenuItem("Hilfe", id='open-offcanvas', n_clicks=0, ),
     ]
+    return menu_items_static
     menu_items_dynamic = []
     events = Event.objects.all().order_by('-start')
     for event in events:
