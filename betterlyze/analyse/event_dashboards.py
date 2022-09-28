@@ -20,14 +20,6 @@ from functools import cache
 from .models import Event, Donation
 
 
-# current_event = config["current_year"].get('event')
-# last_event = config["past_year"].get('event')
-# startdate= ts(config["current_year"].get('starttime'))
-# enddate= ts(config["current_year"].get('endtime'))
-# startdate_last= ts(config["past_year"].get('starttime'))
-# enddate_last= ts(config["past_year"].get('endtime'))
-
-
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = DjangoDash('comparison',external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -50,7 +42,7 @@ def process_event (event,lastdonationtimestamp):
     # 1st hour
     # TODO: Change the UTC-marker to Django TimeZone
     template_times = {'timestamps': [ts(year=starttime.year,month=starttime.month,day=starttime.day,hour=starttime.hour,tz='UTC')], 'donors': [0], 'donations': [0]}
-    currenttime = starttime #
+    currenttime = starttime 
     count=1
     while (currenttime <= maxtime):
         currenttime = starttime+timedelta(hours=count)
@@ -134,7 +126,7 @@ def query_events( event_id_new, event_ids_old = list()):
             pass
         return compare_events(events)
     except Exception as exc:
-        raise exc
+        raise PreventUpdate
 
 @app.callback(
     Output(component_id='event_id_old', component_property='options'),
@@ -207,17 +199,9 @@ def update_app(
             raise PreventUpdate
     except Exception as e:
         raise PreventUpdate
-    # df,df_pie,df_time,df_old,df_time_old = query_data(event_old.id, event_new.id)
+
     events, df_all, df_times, df_pies = query_events (event_id_new=event_id_new, event_ids_old=event_ids_old)
     
-    # linechart = go.Figure( data=[
-    #     go.Scatter(name=events[0].description,
-    #         x=df_all[0]["donated_at"],
-    #         y=df_all[0]["cumulated_sum"],),
-    #     go.Scatter(name=events[1].description,
-    #         x=df_all[1]["donated_at"],
-    #         y=df_all[1]["cumulated_sum"],),
-    # ])
     data_linechart=list()
     data_hourlydonor= list()
     data_hourlydonations = list()
@@ -384,8 +368,6 @@ navbar = dbc.Navbar(
     dbc.Container(
         [
             dbc.NavbarBrand("Analyse", href="#"),
-            #dbc.NavbarToggler(id="navbar-toggler3"),
-            # dbc.Collapse(
                 dbc.Row(
                     [
                         dbc.Col(
@@ -401,7 +383,6 @@ navbar = dbc.Navbar(
                                 "Reload", id="button_reload",color="primary", n_clicks=0, className="ms-2"
                             ),
                             
-                            #dbc.Input(type="search", placeholder="Search")
                         ),
                         dbc.Col( dbc.DropdownMenu(
                             id = 'eventmenu',
@@ -410,17 +391,8 @@ navbar = dbc.Navbar(
                             align_end=True
                         )),
                     ],
-                    # add a top margin to make things look nice when the navbar
-                    # isn't expanded (mt-3) remove the margin on medium or
-                    # larger screens (mt-md-0) when the navbar is expanded.
-                    # keep button and search box on same row (flex-nowrap).
-                    # align everything on the right with left margin (ms-auto).
-                    # className="g-0 ms-auto flex-nowrap mt-3 mt-md-0",
                     align="center",
                 ),
-            #     id="navbar-collapse3",
-            #     navbar=True,
-            # ),
         ]
     ),
     className="mb-5",
@@ -430,20 +402,6 @@ navbar = dbc.Navbar(
 
 app.layout = html.Div([
     navbar,
-    # html.Div([
-    #     # html.Button("Reload", id="button_reload", 
-    #     # ),
-    #     # html.A(html.Button('Home'),
-    #     #     href='https://www.xn--lootfrdiewelt-0ob.de/'),
-    #     html.A(html.Button('Source Code'),
-    #         href='https://github.com/dorsax/betterplace_fetch', target="_blank"),
-    #     # html.Center(daq.BooleanSwitch(
-    #     #     id='refresh_switch',
-    #     #     on=True,
-    #     #     label="Autoreload",
-    #     #     labelPosition="top",
-    #     # ),),
-    # ],),
     html.Div(
     [
         dbc.Row(
@@ -452,7 +410,7 @@ app.layout = html.Div([
                                 width="2",),
                 dbc.Col(dcc.Dropdown(id='event_id_new',
                                 clearable=False,),
-                                width="3",), #, style={'width' :'50%'})),
+                                width="3",), 
                 dbc.Col(html.Div([
                     html.H4 (
                             id='spendensumme_new',
@@ -467,7 +425,7 @@ app.layout = html.Div([
                                 width="2",),
                 dbc.Col(dcc.Dropdown(id='event_id_old',
                                     multi=True,),
-                                width="3",), #s, style={'width' :'50%'})),
+                                width="3",), 
                 dbc.Col(html.Div([
                     html.H4 (
                             id='spendensumme_old',
@@ -490,7 +448,6 @@ app.layout = html.Div([
     html.Div([
                 dcc.Graph(
                     id='Komplettgrafik',
-                    #figure=fig
                 ),
                 dcc.Graph( 
                     id="10_100_k_pie"

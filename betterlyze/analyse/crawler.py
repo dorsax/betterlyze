@@ -4,8 +4,6 @@ from django.db.models import Count, Sum
 
 from .models import Event, Donation
 
-# get the config
-
 def crawl(event_id,max_pages_per_cycle=5000, per_page = 100):
     
 
