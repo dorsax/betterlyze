@@ -283,11 +283,13 @@ def update_app(
     event_ids_old=event_id_old
 
     ctx = dash.callback_context
+    try:
     if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
         raise PreventUpdate
     if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
         raise PreventUpdate
-    
+    except Exception as e:
+        raise PreventUpdate
     # df,df_pie,df_time,df_old,df_time_old = query_data(event_old.id, event_new.id)
     events, df_all, df_times, df_pies = query_events (event_id_new=event_id_new, event_ids_old=event_ids_old)
     
