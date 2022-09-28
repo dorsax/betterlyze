@@ -383,15 +383,24 @@ def buildMenu ():
 navbar = dbc.Navbar(
     dbc.Container(
         [
-            dbc.NavbarBrand("LFDW", href="#"),
-            dbc.NavbarToggler(id="navbar-toggler3"),
-            dbc.Collapse(
+            dbc.NavbarBrand("Analyse", href="#"),
+            #dbc.NavbarToggler(id="navbar-toggler3"),
+            # dbc.Collapse(
                 dbc.Row(
                     [
+                        dbc.Col(
+                                dcc.Loading(
+                                    id="loading-1",
+                                    type="default",
+                                    children=html.Div(id="loading-output-1",style = {'display': 'none'})
+                                ),
+                        ),
+                        dbc.Col(),
                         dbc.Col(
                             dbc.Button(
                                 "Reload", id="button_reload",color="primary", n_clicks=0, className="ms-2"
                             ),
+                            
                             #dbc.Input(type="search", placeholder="Search")
                         ),
                         dbc.Col( dbc.DropdownMenu(
@@ -406,15 +415,16 @@ navbar = dbc.Navbar(
                     # larger screens (mt-md-0) when the navbar is expanded.
                     # keep button and search box on same row (flex-nowrap).
                     # align everything on the right with left margin (ms-auto).
-                    className="g-0 ms-auto flex-nowrap mt-3 mt-md-0",
+                    # className="g-0 ms-auto flex-nowrap mt-3 mt-md-0",
                     align="center",
                 ),
-                id="navbar-collapse3",
-                navbar=True,
-            ),
+            #     id="navbar-collapse3",
+            #     navbar=True,
+            # ),
         ]
     ),
     className="mb-5",
+    sticky="top",
 )
 
 
@@ -477,11 +487,6 @@ app.layout = html.Div([
             placement='end',
         ),
     ]),
-    dcc.Loading(
-        id="loading-1",
-        type="default",
-        children=html.Div(id="loading-output-1",style = {'display': 'none'})
-    ),
     html.Div([
                 dcc.Graph(
                     id='Komplettgrafik',
