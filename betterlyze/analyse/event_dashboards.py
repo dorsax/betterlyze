@@ -388,14 +388,14 @@ def update_app(
         annotations=[dict(text='Spenden', x=0.0, y=0.5, font_size=20, showarrow=False),
                     dict(text='Summen', x=1.0, y=0.5, font_size=20, showarrow=False)])
     
-    maxsum=df["cumulated_sum"].max()
+    maxsum=df_all[0]["cumulated_sum"].max()
     maxsumstr = f"{maxsum:.2f}"+" €"
     
     if event_id_old == None:
         maxsumstr_old = ""
     else:
-        maxsum_old=df_old["cumulated_sum"].max()
-        maxsumstr_old = f"{maxsum_old:.2f}"+" €"
+        #maxsum_old=df_old["cumulated_sum"].max()
+        maxsumstr_old = "" #f"{maxsum_old:.2f}"+" €"
 
     return "",maxsumstr, maxsumstr_old,linechart,df_all[0].to_dict('records'),piecharts, hourlydonations, hourlydonor
     
