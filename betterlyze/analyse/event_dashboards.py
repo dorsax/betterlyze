@@ -106,10 +106,16 @@ def compare_events (events):
     for event in events :
         df, df_time, df_pie = process_event(event)
         time_between_events = ts(event_to_be_compared_with.start)-ts(event.start)
-        df['donated_at']=df['donated_at']+time_between_events
-        df_time['timestamps']=df_time['timestamps']+time_between_events
-        df_all.append(df)
-        df_times.append(df_time)
+        # ensure to not modify any cached dataframes to avoid calculating back more and more
+
+        df2=df.copy()
+        df_time2=df_time.copy()
+        df_pie2=df_pie.copy()
+        df2['donated_at']=df2['donated_at']+time_between_events
+        df_time2['timestamps']=df_time2['timestamps']+time_between_events
+
+        df_all.append(df2)
+        df_times.append(df_time2)
         df_pies.append(df_pie)
     return events, df_all, df_times, df_pies
 
