@@ -228,12 +228,19 @@ def query_events( event_id_new, event_ids_old = list()):
 def update_dropdowns (event_id_old, event_id_new):
     all_events = Event.objects.all().values('id','description')
     all_events_dropdown = []
+    old_events_dropdown = []
     for event in all_events:
-        all_events_dropdown.append({
+        dropdown_item = {
             'label' : event['description'],
             'value' : event['id'],
-        })
-    return all_events_dropdown, all_events_dropdown
+        }
+        if (event['id'] == event_id_new):
+            all_events_dropdown.append(dropdown_item)
+        else:
+            all_events_dropdown.append(dropdown_item)
+            old_events_dropdown.append(dropdown_item)
+
+    return old_events_dropdown, all_events_dropdown
 
 @app.callback(
     Output(component_id='graphs', component_property='style'),
@@ -272,20 +279,8 @@ def update_app(
             n_intervals=0,
             ):
 
-    try:
-        event_new = Event.objects.get(pk=event_id_new)
-    except Exception as exc:
-        raise exc
-    
     event_ids_old = list()
-    event_ids_old.append(event_id_old)
-
-    try:
-        event_old = Event.objects.get(pk=event_id_old)
-    except Exception as exc:
-        event_old = event_new
-    
-
+    event_ids_old=event_id_old
 
     ctx = dash.callback_context
     if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
@@ -527,7 +522,8 @@ app.layout = html.Div([
             [
                 dbc.Col(html.Label ("Aktuelles Event", id='event_id_new_Label'),
                                 width="2",),
-                dbc.Col(dcc.Dropdown(id='event_id_new'),
+                dbc.Col(dcc.Dropdown(id='event_id_new',
+                                clearable=False,),
                                 width="3",), #, style={'width' :'50%'})),
                 dbc.Col(html.Div([
                     html.H4 (
@@ -541,7 +537,8 @@ app.layout = html.Div([
             [
                 dbc.Col(html.Label ("Vergangenes Event", id='event_id_old'),
                                 width="2",),
-                dbc.Col(dcc.Dropdown(id='event_id_old'),
+                dbc.Col(dcc.Dropdown(id='event_id_old',
+                                    multi=True,),
                                 width="3",), #s, style={'width' :'50%'})),
                 dbc.Col(html.Div([
                     html.H4 (
