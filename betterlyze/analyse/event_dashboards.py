@@ -211,7 +211,6 @@ def query_events( event_id_new, event_ids_old = list()):
         events = list()
         events.append(Event.objects.get(pk=event_id_new))
         try:
-            print (event_ids_old)
             for event_id in event_ids_old:
                 events.append(Event.objects.get(pk=event_id))
         except Exception as exc:
