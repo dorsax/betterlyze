@@ -120,7 +120,7 @@ def compare_events (events):
 
         df_all.append(df2)
         df_times.append(df_time2)
-        df_pies.append(df_pie)
+        df_pies.append(df_pie2)
     return events, df_all, df_times, df_pies
 
 def query_events( event_id_new, event_ids_old = list()):
