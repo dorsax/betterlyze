@@ -1,3 +1,4 @@
+from typing import OrderedDict
 from django_plotly_dash import DjangoDash
 import dash
 from dash import dash_table
@@ -175,9 +176,9 @@ def show_hide_graphs (event_id_old):
 @app.callback(
     Output(component_id='loading-output-1', component_property='children'),
     Output(component_id='spendensumme_new', component_property='children'),
-    Output(component_id='spendensumme_old', component_property='children'),
+    Output(component_id='Spendenstaende', component_property='data'),
     Output(component_id='Komplettgrafik', component_property='figure'),
-    Output(component_id='Komplettabelle', component_property='data'),
+    Output(component_id='Kompletttabelle', component_property='data'),
     Output(component_id='10_100_k_pie', component_property='figure'),
     Output(component_id='hourly_donations', component_property='figure'),
     Output(component_id='hourly_donors', component_property='figure'),
@@ -220,7 +221,15 @@ def update_app(
     data_linechart=list()
     data_hourlydonor= list()
     data_hourlydonations = list()
+    maxsums=OrderedDict(
+        [
+            ("Event", []),
+            ("Summe", []),
+        ]
+    )
     for index in range(0,len(events)):
+        maxsums["Event"].append(events[index].description)
+        maxsums["Summe"].append(df_all[index]["cumulated_sum"].max())
         data_linechart.append(
              go.Scatter(name=events[index].description,
                 x=df_all[index]["donated_at"],
@@ -302,21 +311,12 @@ def update_app(
     
     maxsum=df_all[0]["cumulated_sum"].max()
     maxsumstr = f"{maxsum:.2f}"+" €"
-    
-    if event_id_old == None:
-        maxsumstr_old = ""
-    else:
-        #maxsum_old=df_old["cumulated_sum"].max()
-        maxsumstr_old = "" #f"{maxsum_old:.2f}"+" €"
 
-    return "",maxsumstr, maxsumstr_old,linechart,df_all[0].to_dict('records'),piecharts, hourlydonations, hourlydonor
-    
 
-money = dash_table.FormatTemplate.money(2)
-columns = [
-    dict(id='donated_at', name='Zeitpunkt'),
-    dict(id='donated_amount_in_Euro', name='Spende', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
-]
+
+
+    return "",maxsumstr, pd.DataFrame(maxsums).to_dict('records') ,linechart,df_all[0].to_dict('records'),piecharts, hourlydonations, hourlydonor
+    
 
 footer_text = '''
 © dor_sax. Source code available [on GitHub](https://github.com/dorsax/betterplace_fetch)
@@ -496,16 +496,49 @@ app.layout = html.Div([
                 dcc.Graph(
                     id="hourly_donors"
                 ),
-                html.H4(
-                    id='Title_Table',
-                    children='Letzte Spenden',
+                dbc.Row([
+                    dbc.Col(html.H4 ("Endstände"),
+                                        width="6",
+                    ),
+                    dbc.Col(html.H4 ("Aktuelles Event"),
+                                        width="6",
+                    ),
+                ]),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            dash_table.DataTable(
+                                id='Spendenstaende',
+                                columns=[
+                                    dict(id='Event', name='Event', ),
+                                    dict(id='Summe', name='Summe', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
+                                ],
+                                style_cell_conditional=[
+                                    {
+                                        'if': {'column_id': 'Event'},
+                                        'textAlign': 'left'
+                                    }
+                                ],
+                            )           
+                        ),
+                        dbc.Col(dash_table.DataTable(
+                                    id='Kompletttabelle',
+                                    columns=[
+                                            dict(id='donated_at', name='Zeitpunkt'),
+                                            dict(id='donated_amount_in_Euro', name='Spende', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
+                                        ],
+                                    style_cell_conditional=[
+                                        {'if': {'column_id': 'donated_at'},
+                                        'width': '120px'},
+                                        {'if': {'column_id': 'donated_amount_in_Euro'},
+                                        'width': '240px'},
+                                    ],
+                                    page_size=20,
+                        ),
+                        width="6",),
+                    ]
                 ),
-                dash_table.DataTable(
-                    id='Komplettabelle',
-                    #data=df.to_dict('records')
-                    columns=columns,
-                    page_size=20,
-                ),
+                
             ],id='graphs',),
     html.Footer(
         dcc.Markdown(footer_text)        
