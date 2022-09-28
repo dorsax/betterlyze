@@ -10,11 +10,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from dash.dash_table.Format import Format, Group, Prefix, Scheme, Symbol
 from dash import dash_table
-from flask_caching import Cache
 import dash_daq as daq
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, html
+from functools import cache
 
 from .models import Event, Donation
 
@@ -32,7 +32,9 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = DjangoDash('comparison',external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # rewritten for django context
-def process_event (event):
+@cache
+def process_event (event,lastdonationtimestamp):
+    del lastdonationtimestamp
     starttime = ts(event.start)
     endtime = ts(event.end)
     df = pd.DataFrame.from_records(Donation.objects.filter(event_id=event.id).values())
@@ -104,7 +106,8 @@ def compare_events (events):
     df_pies = list()
     event_to_be_compared_with = events[0]
     for event in events :
-        df, df_time, df_pie = process_event(event)
+
+        df, df_time, df_pie = process_event(event, Donation.objects.filter(event_id=event.id).latest('donated_at'))
         time_between_events = ts(event_to_be_compared_with.start)-ts(event.start)
         # ensure to not modify any cached dataframes to avoid calculating back more and more
 
