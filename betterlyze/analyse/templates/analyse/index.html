@@ -1,0 +1,9 @@
+{% if all_events_list %}
+    <ul>
+    {% for event in all_events_list %}
+        <li><a href="{% url 'analyse:detail' event.id %}">{{ event }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No events are available.</p>
+{% endif %}

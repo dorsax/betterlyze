@@ -1,0 +1,20 @@
+<head> 
+    <style>
+    .comparison::-webkit-scrollbar {
+        display: none;
+    }
+    .django-plotly-dash-iframe div {        
+        position: unset !important;
+        padding-bottom: unset !important;
+        height: unset !important;
+        overflow:unset !important;
+    }
+    </style>
+</head>
+{%load plotly_dash%}
+<div class= "{% plotly_class name='comparison' %} card">
+    {%plotly_app name="comparison"%}
+    
+
+</div>
+
