@@ -1,12 +1,12 @@
+flask==2.1.3
 pyyaml
 requests
 pandas
 matplotlib
 mysql-connector-python
 dash
-flask_caching
 dash_daq
-Django
+Django<4
 mysqlclient
 django_plotly_dash
 dash_bootstrap_components>1
