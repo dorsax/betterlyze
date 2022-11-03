@@ -3,11 +3,17 @@
     .comparison::-webkit-scrollbar {
         display: none;
     }
+    .django-plotly-dash-iframe div {        
+        position: unset !important;
+        padding-bottom: unset !important;
+        height: unset !important;
+        overflow:unset !important;
+    }
     </style>
 </head>
 {%load plotly_dash%}
-<div class= "{% plotly_class name='comparison' %} card" style="height: 20%; width: 100%">
-    {%plotly_app name="comparison" ratio=0.5 %}
+<div class= "{% plotly_class name='comparison' %} card">
+    {%plotly_app name="comparison"%}
     
 
 </div>
