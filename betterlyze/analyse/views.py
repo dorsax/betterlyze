@@ -1,3 +1,4 @@
+from django_tables2 import SingleTableView
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -6,6 +7,7 @@ from django.views.generic.detail import SingleObjectMixin
 
 from .models import Event, Donation
 from .crawler import crawl as external_crawl
+from .tables import DonationTable
 from . import event_dashboards
 #from . import event_dashboards
 # Create your views here.
@@ -15,9 +17,10 @@ class EventList(ListView):
     template_name = 'analyse/event_list.html'
 
 
-class EventDetail (SingleObjectMixin, ListView):
+class EventDetail (SingleObjectMixin, SingleTableView):
     paginate_by = 20
     template_name = 'analyse/event_detail.html'
+    table_class = DonationTable
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object(queryset=Event.objects.all())

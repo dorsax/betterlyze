@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'analyse.apps.AnalyseConfig',
     "django_cron",
+    "django_tables2",
 ]
 
 MIDDLEWARE = [
