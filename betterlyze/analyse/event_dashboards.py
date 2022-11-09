@@ -21,9 +21,9 @@ from django.utils import timezone
 from .models import Event, Donation
 
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css']
 
-app = DjangoDash('comparison',external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = DjangoDash('comparison',external_stylesheets=external_stylesheets)
 
 # rewritten for django context
 @cache
