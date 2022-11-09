@@ -1,0 +1,36 @@
+{% block content %}
+
+    <h1> {{ event }} </h1>
+
+    <p>Dieses Event fand vom {{event.start|date:"d.m.Y"}} um {{event.start|date:"G:i"}} bis {{event.end|date:"d.m.Y"}} um {{event.end|date:"G:i"}} statt. </p>
+    <p>Es wurden {{event.donation_sum_euro}} &euro; Spenden in diesem Event gesammelt.</p>
+    <p>Die aktuelle Zahl der geladenen Spenden betragt: {{event.donation_count}}</p>
+
+    {% if user.is_authenticated %}
+        <form action="{% url 'analyse:crawl' event.id %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Crawl">
+        </form>
+    {% endif %}
+
+    <ul>
+        {% for donation in page_obj %}
+            <li>{{ donation.donatated_amount_in_euros }}  </li>
+        {% endfor %}
+    </ul>
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+            {% endif %}
+        </span>
+    </div>
+{% endblock %}
