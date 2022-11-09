@@ -1,6 +1,7 @@
-{% if all_events_list %}
+<h1>Alle Events</h1>
+{% if event_list %}
     <ul>
-    {% for event in all_events_list %}
+    {% for event in event_list %}
         <li><a href="{% url 'analyse:detail' event.id %}">{{ event }}</a></li>
     {% endfor %}
     </ul>

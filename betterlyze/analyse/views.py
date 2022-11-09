@@ -10,16 +10,10 @@ from . import event_dashboards
 #from . import event_dashboards
 # Create your views here.
 
-def details(request):
-    all_events_list = Event.objects.order_by('-end')
-    context = {
-        'all_events_list' : all_events_list,
-    }
-    return render(request, 'analyse/index.html', context)
-
-class DetailView (DetailView):
+class EventList(ListView):
     model = Event
-    template_name = 'analyse/detail.html'
+    template_name = 'analyse/event_list.html'
+
 
 class EventDetail (SingleObjectMixin, ListView):
     paginate_by = 20
