@@ -12,3 +12,4 @@ django_plotly_dash
 dash_bootstrap_components>1
 django_cron
 django-tables2
+django-bootstrap3
