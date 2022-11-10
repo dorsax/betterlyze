@@ -1,17 +1,19 @@
+import json
 from math import floor
+from msilib.schema import Error
 import requests
 from django.db.models import Count, Sum
 
 from .models import Event, Donation
 
 def crawl(event_id,max_pages_per_cycle=5000, per_page = 100):
-    
+        
 
     try:
         event = Event.objects.get(pk=event_id)
     except Event.DoesNotExist as exc:
         raise exc
-    
+
     uri = f'https://api.betterplace.org/de/api_v4/fundraising_events/{event.id}/opinions.json'
     uri_overview = f'https://api.betterplace.org/de/api_v4/fundraising_events/{event.id}.json'
     page = 50000000 # ensures no data at all and gets the key param to be loaded: total_pages !
@@ -33,7 +35,7 @@ def crawl(event_id,max_pages_per_cycle=5000, per_page = 100):
             currentpage = 1
     except Donation.DoesNotExist:
         currentpage = 1
-    
+
     jresponse = fetch()
 
     # do a maximum of x pages per cycle, but don't try to get more pages than available (results in NULL data)
@@ -52,13 +54,29 @@ def crawl(event_id,max_pages_per_cycle=5000, per_page = 100):
                 setwaszero=0
                 if json_donation.get('donated_amount_in_cents',0)==0:
                     setwaszero=1
+                name=''
+                try:
+                    name= json_donation.get('author').get('name')
+                except AttributeError:
+                    name= 'Anonym'
+                message = json_donation.get('message','')
+                if message == None: message = ''
                 try:
                     Donation.objects.get(event_id=event.id,id=json_donation.get('id',-1))
                 except Donation.DoesNotExist:
-                    Donation.objects.create (id=json_donation.get('id',-1),event_id=event.id,donated_amount_in_cents=json_donation.get('donated_amount_in_cents',0),page=page,donated_at=json_donation.get('created_at',0), was_zero=setwaszero)
-                    
-
-
+                    try:
+                        Donation.objects.create (id=json_donation.get('id',-1),
+                            event_id=event.id,
+                            donated_amount_in_cents=json_donation.get('donated_amount_in_cents',0),
+                            page=page,
+                            donated_at=json_donation.get('created_at',0),
+                            was_zero=setwaszero,
+                            donor=name,
+                            message=message,
+                            )
+                    except Exception as e:
+                        print(json_donation)
+                        raise e
 
     # Count all donations which are anonymized
     anonymous_count = Donation.objects.filter(event=event.id,was_zero=1).aggregate(Count('id'))['id__count']

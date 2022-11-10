@@ -32,6 +32,8 @@ class Donation(models.Model):
     page = models.BigIntegerField()
     donated_at = models.DateTimeField()
     was_zero = models.IntegerField(default=0)
+    donor = models.CharField(max_length=255,default='Anonym')
+    message = models.TextField(default='')
 
     def donatated_amount_in_euros (self) :
         return self.donated_amount_in_cents/100
