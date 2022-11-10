@@ -39,6 +39,10 @@
             {% csrf_token %}
             {% bootstrap_button 'Purge'  button_type="submit" button_class="btn-danger" %}
         </form>
+        <form class="col-sm" action="{% url 'analyse:anonymize' event.id %}" method="post">
+            {% csrf_token %}
+            {% bootstrap_button 'Anonymize'  button_type="submit" button_class="btn-danger" %}
+        </form>
         </div>
     </div>
     {% endif %}

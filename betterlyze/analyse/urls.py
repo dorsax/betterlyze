@@ -9,4 +9,5 @@ urlpatterns = [
     path('details/', views.EventList.as_view(), name='details'),
     path('<int:event_id>/crawl/', views.crawl, name='crawl'),
     path('<int:event_id>/purge/', views.purge, name='purge'),
+    path('<int:event_id>/anonymize/', views.anonymize, name='anonymize'),
 ]
