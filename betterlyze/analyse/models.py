@@ -16,6 +16,7 @@ class Event(models.Model):
         return ("[{year}] {name}".format(year=self.year(),name=self.description))
 
     def donation_sum(self):
+        if (self.donation_count()==0): return 0
         return  self.donation_set.all().aggregate(models.Sum('donated_amount_in_cents'))['donated_amount_in_cents__sum']
 
     def donation_sum_euro(self):
