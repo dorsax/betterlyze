@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
+from django.contrib.auth.decorators import login_required
 
 from .models import Event, Donation
 from .crawler import crawl as external_crawl
@@ -34,9 +35,16 @@ class EventDetail (SingleObjectMixin, SingleTableView):
     def get_queryset(self):
         return self.object.donation_set.all()
 
+@login_required
 def crawl(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
     external_crawl(event_id=event_id)
+    return HttpResponseRedirect(reverse('analyse:detail', args=(event.id,)))
+
+@login_required
+def purge(request, event_id):
+    event = get_object_or_404(Event, pk=event_id)
+    event.donation_set.all().delete()
     return HttpResponseRedirect(reverse('analyse:detail', args=(event.id,)))
 
 def compare (request):

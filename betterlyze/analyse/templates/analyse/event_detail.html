@@ -12,10 +12,18 @@
     <p>Die aktuelle Zahl der geladenen Spenden betragt: {{event.donation_count}}</p>
 
     {% if user.is_authenticated %}
-        <form action="{% url 'analyse:crawl' event.id %}" method="post">
-        {% csrf_token %}
-        <input type="submit" value="Crawl">
+    <div class="container">
+        <div class="row">
+        <form class="col-sm" action="{% url 'analyse:crawl' event.id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="Crawl">
         </form>
+        <form class="col-sm" action="{% url 'analyse:purge' event.id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="Purge">
+        </form>
+        </div>
+    </div>
     {% endif %}
 
     <div>
