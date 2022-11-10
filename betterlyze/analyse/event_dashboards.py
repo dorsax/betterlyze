@@ -16,13 +16,14 @@ from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, html
 from functools import cache
+from django.utils import timezone
 
 from .models import Event, Donation
 
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css']
 
-app = DjangoDash('comparison',external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = DjangoDash('comparison',external_stylesheets=external_stylesheets)
 
 # rewritten for django context
 @cache
@@ -40,18 +41,13 @@ def process_event (event,lastdonationtimestamp):
     if (maxtime>endtime):
         maxtime=endtime
     # 1st hour
-    # TODO: Change the UTC-marker to Django TimeZone
-    template_times = {'timestamps': [ts(year=starttime.year,month=starttime.month,day=starttime.day,hour=starttime.hour,tz='UTC')], 'donors': [0], 'donations': [0]}
-    currenttime = starttime 
-    count=1
-    while (currenttime <= maxtime):
-        currenttime = starttime+timedelta(hours=count)
-        template_times['timestamps'].append(currenttime)
-        template_times['donors'].append(0)
-        template_times['donations'].append(0)
-        count+=1
-        if (count>1000):
-            exit("Fatal error while computing timetables!")
+    
+    df.donated_at=df.donated_at.dt.tz_convert(timezone.localtime().tzinfo)
+    ts_template = pd.date_range(starttime,maxtime,freq='H').tz_convert(timezone.localtime().tzinfo)
+    template_df = pd.DataFrame ({'timestamps' : ts_template})
+    template_df['donors']=0
+    template_df['donations']=0
+    template_times = template_df.to_dict()
 
     haventfoundit = True
 
@@ -113,6 +109,7 @@ def compare_events (events):
         df_all.append(df2)
         df_times.append(df_time2)
         df_pies.append(df_pie2)
+    
     return events, df_all, df_times, df_pies
 
 def query_events( event_id_new, event_ids_old = list()):

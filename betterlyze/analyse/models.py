@@ -15,6 +15,16 @@ class Event(models.Model):
     def __str__ (self):
         return ("[{year}] {name}".format(year=self.year(),name=self.description))
 
+    def donation_sum(self):
+        if (self.donation_count()==0): return 0
+        return  self.donation_set.all().aggregate(models.Sum('donated_amount_in_cents'))['donated_amount_in_cents__sum']
+
+    def donation_sum_euro(self):
+        return self.donation_sum()/100
+
+    def donation_count(self):
+        return len(self.donation_set.all())
+
 class Donation(models.Model):
     id = models.CharField(primary_key=True,max_length=64)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
@@ -22,3 +32,8 @@ class Donation(models.Model):
     page = models.BigIntegerField()
     donated_at = models.DateTimeField()
     was_zero = models.IntegerField(default=0)
+    donor = models.CharField(max_length=255,default='Anonym')
+    message = models.TextField(default='')
+
+    def donatated_amount_in_euros (self) :
+        return self.donated_amount_in_cents/100

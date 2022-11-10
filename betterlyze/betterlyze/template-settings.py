@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'analyse.apps.AnalyseConfig',
     "django_cron",
+    "django_tables2",
+    'bootstrap3',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -108,6 +111,15 @@ CRON_CLASSES = [
     "analyse.cron.CronCrawl",
     "analyse.cron.CronCrawlAll",
 ]
+
+BOOTSTRAP3 = {
+    # The complete URL to the Bootstrap CSS file
+    # Note that a URL can be either
+    # - a string, e.g. "//code.jquery.com/jquery.min.js"
+    # - a dict like the default value below (use key "url" for the actual link)
+    "css_url": "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css",
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
