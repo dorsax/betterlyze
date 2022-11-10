@@ -32,12 +32,12 @@
     <div class="container">
         <div class="row">
         <form class="col-sm" action="{% url 'analyse:crawl' event.id %}" method="post">
+            {% bootstrap_button 'Crawl' button_type="submit" button_class="btn-primary" %}
             {% csrf_token %}
-            <input type="submit" value="Crawl">
         </form>
         <form class="col-sm" action="{% url 'analyse:purge' event.id %}" method="post">
             {% csrf_token %}
-            <input type="submit" value="Purge">
+            {% bootstrap_button 'Purge'  button_type="submit" button_class="btn-primary" %}
         </form>
         </div>
     </div>
