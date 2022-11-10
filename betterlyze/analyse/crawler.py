@@ -1,6 +1,5 @@
 import json
 from math import floor
-from msilib.schema import Error
 import requests
 from django.db.models import Count, Sum
 
@@ -74,9 +73,9 @@ def crawl(event_id,max_pages_per_cycle=5000, per_page = 100):
                             donor=name,
                             message=message,
                             )
-                    except Exception as e:
+                    except:
                         print(json_donation)
-                        raise e
+                        raise
 
     # Count all donations which are anonymized
     anonymous_count = Donation.objects.filter(event=event.id,was_zero=1).aggregate(Count('id'))['id__count']
