@@ -1,10 +1,13 @@
-from django_tables2 import SingleTableView
+from django_tables2 import SingleTableMixin
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.contrib.auth.decorators import login_required
+
+from django_filters.views import FilterView
+from .filter import DonationFilter
 
 from .models import Event, Donation
 from .crawler import crawl as external_crawl
@@ -18,10 +21,11 @@ class EventList(ListView):
     template_name = 'analyse/event_list.html'
 
 
-class EventDetail (SingleObjectMixin, SingleTableView):
-    paginate_by = 20
+class EventDetail (SingleObjectMixin, SingleTableMixin, FilterView):
+    paginate_by = 50
     template_name = 'analyse/event_detail.html'
     table_class = DonationTable
+    filterset_class = DonationFilter
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object(queryset=Event.objects.all())

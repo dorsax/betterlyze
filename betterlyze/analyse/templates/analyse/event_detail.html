@@ -32,40 +32,25 @@
     <div class="container">
         <div class="row">
         <form class="col-sm" action="{% url 'analyse:crawl' event.id %}" method="post">
-            {% bootstrap_button 'Crawl' button_type="submit" button_class="btn-primary" %}
+            {% bootstrap_button 'Crawl' button_type="submit" button_class="btn-danger" %}
             {% csrf_token %}
         </form>
         <form class="col-sm" action="{% url 'analyse:purge' event.id %}" method="post">
             {% csrf_token %}
-            {% bootstrap_button 'Purge'  button_type="submit" button_class="btn-primary" %}
+            {% bootstrap_button 'Purge'  button_type="submit" button_class="btn-danger" %}
         </form>
         </div>
     </div>
     {% endif %}
 
     {% if filter %}
-    <form action="" method="get" class="form form-inline">
-        {% bootstrap_form filter.form layout='inline' %}
-        {% bootstrap_button 'filter' %}
+    <form action="" method="get" class="form">
+        {% bootstrap_form filter.form %}
+        {% bootstrap_button 'filter' button_type="submit" button_class="btn-primary"%}
     </form>
     {% endif %}
     <div>
-        {% render_table table %}
+        {% render_table table 'django_tables2/bootstrap.html' %}
     </div>
 
-    <!-- <div class="pagination">
-        <span class="step-links">
-            {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-            {% endif %}
-
-            <span class="current">
-                Page {{ page_obj.number }} of {{ paginator.num_pages }}.
-            </span>
-
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}">next</a>
-            {% endif %}
-        </span>
-    </div> -->
 {% endblock %}

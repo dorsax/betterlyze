@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django_cron",
     "django_tables2",
     'bootstrap3',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
