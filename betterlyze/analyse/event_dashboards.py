@@ -4,13 +4,10 @@ import dash
 from dash import dash_table
 from dash import dcc
 from pandas import Timestamp as ts
-from dash.dependencies import Input, Output
-from datetime import timedelta
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from dash.dash_table.Format import Format, Group, Prefix, Scheme, Symbol
-from dash import dash_table
+from dash.dash_table.Format import Format, Symbol
 import dash_daq as daq
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
@@ -34,14 +31,14 @@ def process_event (event,lastdonationtimestamp):
     df = pd.DataFrame.from_records(Donation.objects.filter(event_id=event.id).values())
     df['donated_amount_in_Euro'] = df.donated_amount_in_cents.div(100).round(2)
     df['cumulated_sum'] = df.donated_amount_in_Euro.cumsum(axis = 0, skipna = True)
-    
+
     template_pie= {'donations': [0,0,0,0],'categories':['bis 10 €','10 bis 100 €','100 bis 1000 €', 'über 1000 €'],'donation_sum':[0,0,0,0]}
     maxtime=df['donated_at'].max()
 
     if (maxtime>endtime):
         maxtime=endtime
     # 1st hour
-    
+
     df.donated_at=df.donated_at.dt.tz_convert(timezone.localtime().tzinfo)
     ts_template = pd.date_range(starttime,maxtime,freq='H').tz_convert(timezone.localtime().tzinfo)
     template_df = pd.DataFrame ({'timestamps' : ts_template})
@@ -51,7 +48,7 @@ def process_event (event,lastdonationtimestamp):
 
     haventfoundit = True
 
-    for index, row in df.iterrows():
+    for index, row in df.iterrows(): # pylint: disable=unused-variable
         if (row['donated_amount_in_cents']<1000):
             template_pie['donations'][0] += 1
             template_pie['donation_sum'][0] += row["donated_amount_in_Euro"]
@@ -68,9 +65,9 @@ def process_event (event,lastdonationtimestamp):
             template_pie['donations'][3] += 1
             template_pie['donation_sum'][3] += row["donated_amount_in_Euro"]
 
-        if (False):#row['donated_at']<template_times['timestamps'][1]):
-            template_times['donors'][0]+=1
-            template_times['donations'][0]+=row['donated_amount_in_Euro']
+        # if (False):#row['donated_at']<template_times['timestamps'][1]):
+        #     template_times['donors'][0]+=1
+        #     template_times['donations'][0]+=row['donated_amount_in_Euro']
         else:
             for index2 in range (0,len(template_times['timestamps'])-1):
                 if ((row['donated_at']>=template_times['timestamps'][index2]) and (row['donated_at']<=template_times['timestamps'][index2+1])):
@@ -85,7 +82,7 @@ def process_event (event,lastdonationtimestamp):
             template_times['donations'][len(template_times['timestamps'])-1]+=row['donated_amount_in_Euro']
 
     df=df.sort_values(by='donated_at', ascending=False) # newest to earliest
-    df_time = pd.DataFrame(data=template_times)        
+    df_time = pd.DataFrame(data=template_times)
     df_pie= pd.DataFrame(data=template_pie)
     return df,df_time,df_pie
 
@@ -109,7 +106,7 @@ def compare_events (events):
         df_all.append(df2)
         df_times.append(df_time2)
         df_pies.append(df_pie2)
-    
+
     return events, df_all, df_times, df_pies
 
 def query_events( event_id_new, event_ids_old = list()):
@@ -119,19 +116,18 @@ def query_events( event_id_new, event_ids_old = list()):
         try:
             for event_id in event_ids_old:
                 events.append(Event.objects.get(pk=event_id))
-        except Exception as exc:
+        except Exception:
             pass
         return compare_events(events)
     except Exception as exc:
-        raise PreventUpdate
+        raise PreventUpdate from exc
 
 @app.callback(
     Output(component_id='event_id_old', component_property='options'),
     Output(component_id='event_id_new', component_property='options'),
-    Input(component_id='event_id_old', component_property='value'),
     Input(component_id='event_id_new', component_property='value'),
 )
-def update_dropdowns (event_id_old, event_id_new):
+def update_dropdowns (event_id_new):
     all_events = Event.objects.all().values('id','description')
     all_events_dropdown = []
     old_events_dropdown = []
@@ -178,11 +174,11 @@ def show_hide_graphs (event_id_old):
     Input('interval-component', 'n_intervals'),
 )
 def update_app(
-            event_id_old, 
-            event_id_new, 
+            event_id_old,
+            event_id_new,
             on,
-            n_clicks=0,
-            n_intervals=0,
+            n_clicks=0, # pylint: disable=unused-variable
+            n_intervals=0, # pylint: disable=unused-variable
             ):
 
     event_ids_old = list()
@@ -195,10 +191,10 @@ def update_app(
         if ((ctx.triggered[0]['prop_id'].split('.')[0]== 'interval-component') and (on==False)):
             raise PreventUpdate
     except Exception as e:
-        raise PreventUpdate
+        raise PreventUpdate from e
 
     events, df_all, df_times, df_pies = query_events (event_id_new=event_id_new, event_ids_old=event_ids_old)
-    
+
     data_linechart=list()
     data_hourlydonor= list()
     data_hourlydonations = list()
@@ -225,8 +221,8 @@ def update_app(
     linechart = go.Figure(data = data_linechart)
     hourlydonor = go.Figure(data=data_hourlydonor)
     hourlydonations = go.Figure(data=data_hourlydonations)
-    
-    
+
+
     # change the graph to only show the current maximum time
     maxentry=df_all[0]["donated_at"].max()
     if (ts(events[0].end)>=maxentry) and (maxentry>=ts(events[0].start)):
@@ -265,15 +261,15 @@ def update_app(
             'yanchor': 'top'
         },
         barmode='group',)
-    
-    
+
+
     labels=df_pies[0]['categories']
     piecharts = make_subplots (rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
     piecharts.add_trace (go.Pie(labels=labels,values=df_pies[0]['donations'],
                     name='Spender',sort=False),1,1)
     piecharts.add_trace (go.Pie(labels=labels,values=df_pies[0]['donation_sum'],
                     name='Spenden',sort=False),1,2)
-        
+
     piecharts.update_traces(hole=.4, hovertemplate ="%{label}: <br>%{percent} </br>%{value}")
 
     piecharts.update_layout(
@@ -289,7 +285,7 @@ def update_app(
         # Add annotations in the center of the donut pies.
         annotations=[dict(text='Spenden', x=0.0, y=0.5, font_size=20, showarrow=False),
                     dict(text='Summen', x=1.0, y=0.5, font_size=20, showarrow=False)])
-    
+
     maxsum=df_all[0]["cumulated_sum"].max()
     maxsumstr = f"{maxsum:.2f}"+" €"
 
@@ -297,7 +293,7 @@ def update_app(
 
 
     return "",maxsumstr, pd.DataFrame(maxsums).to_dict('records') ,linechart,df_all[0].to_dict('records'),piecharts, hourlydonations, hourlydonor
-    
+
 
 description = '''
 # Beschreibung
@@ -305,14 +301,14 @@ description = '''
 Die hier dargestellten Daten kommen von der Betterplace-API und stellen die Verläufe der gewählten Events dar.
 Die Ringdiagramme beziehen sich nur auf das aktuelle Event.
 
-## Bedienung 
+## Bedienung
 
 In den oberen beiden Dropdowns kann ausgewählt werden, welches Event angezeigt und verglichen werden soll. \
 Die einzenen Grafiken können gezoomt werden.
 Doppelklick setzt den Zoom zurück.
-Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss. 
+Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss.
 Der **Reload-Button** aktualisiert alle Grafiken. **Ein Reload der Seite über den Browser selbst setzt auch den Inhalt der DropDown-Felder zurück*
-Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatisch alle 3 Minuten aktualisiert. 
+Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatisch alle 3 Minuten aktualisiert.
 Dabei werden aktuell auch alle Ansichten zurückgesetzt.
 Der Autoreload kann ausgeschaltet werden.
 
@@ -331,6 +327,7 @@ def toggle_offcanvas(n1, is_open):
 def buildMenu ():
     menu_items_static = [
         # dbc.DropdownMenuItem(divider=True),
+        # pylint: disable=not-callable
         dbc.DropdownMenuItem(
                 daq.BooleanSwitch(
                     id='refresh_switch',
@@ -339,22 +336,23 @@ def buildMenu ():
                     labelPosition="left",
                 ),
             ),
+        # pylint: enable=not-callable
         dbc.DropdownMenuItem(divider=True),
         dbc.DropdownMenuItem("Hilfe", id='open-offcanvas', n_clicks=0, ),
     ]
     return menu_items_static
-    menu_items_dynamic = []
-    events = Event.objects.all().order_by('-start')
-    for event in events:
-        menu_items_dynamic.append(
-            dbc.DropdownMenuItem (
-                event.description,
-                href = f'/analyse/{event.id}',
-                external_link=True,
-            )
-        )
+    # menu_items_dynamic = []
+    # events = Event.objects.all().order_by('-start')
+    # for event in events:
+    #     menu_items_dynamic.append(
+    #         dbc.DropdownMenuItem (
+    #             event.description,
+    #             href = f'/analyse/{event.id}',
+    #             external_link=True,
+    #         )
+    #     )
 
-    return menu_items_dynamic + menu_items_static
+    # return menu_items_dynamic + menu_items_static
 
 navbar = dbc.Navbar(
     dbc.Container(
@@ -374,7 +372,7 @@ navbar = dbc.Navbar(
                             dbc.Button(
                                 "Reload", id="button_reload",color="primary", n_clicks=0, className="ms-2"
                             ),
-                            
+
                         ),
                         dbc.Col( dbc.DropdownMenu(
                             id = 'eventmenu',
@@ -402,7 +400,7 @@ app.layout = html.Div([
                                 width="2",),
                 dbc.Col(dcc.Dropdown(id='event_id_new',
                                 clearable=False,),
-                                width="3",), 
+                                width="3",),
                 dbc.Col(html.Div([
                     html.H4 (
                             id='spendensumme_new',
@@ -417,7 +415,7 @@ app.layout = html.Div([
                                 width="2",),
                 dbc.Col(dcc.Dropdown(id='event_id_old',
                                     multi=True,),
-                                width="3",), 
+                                width="3",),
                 dbc.Col(html.Div([
                     html.H4 (
                             id='spendensumme_old',
@@ -441,7 +439,7 @@ app.layout = html.Div([
                 dcc.Graph(
                     id='Komplettgrafik',
                 ),
-                dcc.Graph( 
+                dcc.Graph(
                     id="10_100_k_pie"
                 ),
                 dcc.Graph(
@@ -473,7 +471,7 @@ app.layout = html.Div([
                                         'textAlign': 'left'
                                     }
                                 ],
-                            )           
+                            )
                         ),
                         dbc.Col(dash_table.DataTable(
                                     id='Kompletttabelle',
@@ -492,7 +490,7 @@ app.layout = html.Div([
                         width="6",),
                     ]
                 ),
-                
+
             ],id='graphs',),
     dcc.Interval(
         id='interval-component',
