@@ -299,10 +299,6 @@ def update_app(
     return "",maxsumstr, pd.DataFrame(maxsums).to_dict('records') ,linechart,df_all[0].to_dict('records'),piecharts, hourlydonations, hourlydonor
     
 
-footer_text = '''
-© dor_sax. Source code available [on GitHub](https://github.com/dorsax/betterplace_fetch)
-'''
-
 description = '''
 # Beschreibung
 
@@ -320,9 +316,7 @@ Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatis
 Dabei werden aktuell auch alle Ansichten zurückgesetzt.
 Der Autoreload kann ausgeschaltet werden.
 
-## Herausgeber und Source Code
-
-''' + footer_text
+'''
 
 @app.callback(
     Output("offcanvas", "is_open"),
@@ -500,9 +494,6 @@ app.layout = html.Div([
                 ),
                 
             ],id='graphs',),
-    html.Footer(
-        dcc.Markdown(footer_text)        
-    ),
     dcc.Interval(
         id='interval-component',
         interval=3*60*1000, # in milliseconds
