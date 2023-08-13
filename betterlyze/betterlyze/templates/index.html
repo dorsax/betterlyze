@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Willkommen{% endblock title %}
+
+
+{% block content %}
+
+<p>
+    Willkommen auf Betterlyze, einer Plattform zum Sammeln und Vergleichen von Spendendaten von der Fundraising-Site <a href="www.betterplasce.org">Betterplace.org</a>.
+</p>
+<h3> Erste Schritte</h3>
+<ul>
+    <li>Direkt zur <a href="{% url 'analyse:index'%}">Auswertung</a></li>
+    <li>&Uuml;bersicht aller <a href="{% url 'analyse:details'%}">verf&uuml;gbaren Daten</a> (nur angemeldete Benutzer)</li> 
+</ul>
+
+
+{% endblock content %}
