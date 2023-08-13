@@ -1,20 +1,28 @@
-<head> 
-    <style>
-    .comparison::-webkit-scrollbar {
-        display: none;
-    }
-    .django-plotly-dash-iframe div {        
-        position: unset !important;
-        padding-bottom: unset !important;
-        height: unset !important;
-        overflow:unset !important;
-    }
-    </style>
-</head>
+{% extends "analyse/base.html" %}
+
+{% block stylesheets %}
+<style>
+{% comment %} .comparison::-webkit-scrollbar {
+    display: none;
+} {% endcomment %}
+{% comment %} .django-plotly-dash-app-comparison {        
+    position: unset !important;
+    padding-bottom: unset !important;
+    height: 1700px !important;
+    overflow:unset !important;
+} {% endcomment %}
+.card>div {
+    {% comment %} height: 100vh !important; {% endcomment %}
+    height: calc(100vh - 100px) !important;
+}
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
 {%load plotly_dash%}
 <div class= "{% plotly_class name='comparison' %} card">
     {%plotly_app name="comparison"%}
     
 
 </div>
-
+{% endblock content %}
