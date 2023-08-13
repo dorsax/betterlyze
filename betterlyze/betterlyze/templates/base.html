@@ -1,0 +1,113 @@
+{% load bootstrap3 %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>
+        Betterlyze - {% block title %}{% endblock %}
+    </title>
+    <!-- HTML5 Shim and Respond.js IE10 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 10]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+    <!-- Meta -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="Betterlyze shows analyses on events that hapen or happened on betterplace.org" />
+    
+    <!-- Favicon icon -->
+    <link rel="icon" href="{% static 'analyse/images/favicon.png' %}" type="image/png">
+    <!-- fontawesome icon -->
+
+    <!-- vendor css -->
+    <link rel="stylesheet" href="{%static 'analyse/css/style.css' %}">
+    <!-- dark mode css -->
+    <link rel="stylesheet" href="{%static 'analyse/css/dark.css' %}">
+    
+    {# Load CSS and JavaScript #}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+
+    {# Display django.contrib.messages as Bootstrap alerts #}
+    {% bootstrap_messages %}
+    <!-- Specific CSS goes HERE -->
+    <style>
+        .logo {
+            width : 40px;
+        }
+        .logo-full {
+            max-height : 50px;
+        }
+    </style>
+    {% block stylesheets %}
+    {% endblock stylesheets %}
+    
+
+</head>
+<body>
+    
+    <nav class="navbar navbar-light navbar-expand-md bg-light sticky-top"> {% comment %}  {% endcomment%}
+        <div class="container">
+            <a href="/">
+                <img src="{% static 'analyse/images/logo-full.png' %}" class="logo-full" alt="Betterlyze">
+            </a>
+            {% comment %} <a href="#" class="navbar-brand">Betterlyze</a> {% endcomment %}
+            {% comment %} <div class="align-items-center row">
+                <div class="col">
+                    <div style="">
+                        <div id="loading-output-1" style="display: none;"></div>
+                        <div style=""></div>
+                    </div>
+                </div>
+                <div class="col"></div>
+                <div class="col">
+                    <button id="button_reload" class="ms-2 btn btn-primary">Reload</button>
+                </div>
+                <div class="col">
+                    <div id="eventmenu" class="dropdown">
+                        <button type="button" id="react-aria537110805-1" aria-expanded="false" class="dropdown-toggle btn btn-primary">Menü</button>
+                        <div data-bs-popper="static" class="dropdown-menu dropdown-menu-end" aria-labelledby="react-aria537110805-1">
+                            <button n_clicks_timestamp="-1" data-rr-ui-dropdown-item="" class="dropdown-item">
+                                <div id="refresh_switch">
+                                    <div class="sc-dnqmqq chqyiX daq-booleanswitch--light__label">
+                                        <div class="sc-htpNat jAjsxw daq-booleanswitch--light" rotate="0" size="45">
+                                            <div class="sc-bxivhb gJuplL daq-booleanswitch--light__background" size="45" color="#ABE2FB">
+                                                <button class="sc-ifAKCX dlqMgb daq-booleanswitch--light__button" size="45"></button>
+                                            </div>
+                                        </div>
+                                        <label class="sc-bwzfXH gRFjMP">Autoreload</label>
+                                    </div>
+                                </div>
+                            </button>
+                            <hr class="dropdown-divider" role="separator">
+                            <button id="open-offcanvas" n_clicks_timestamp="-1" data-rr-ui-dropdown-item="" class="dropdown-item">Hilfe</button>
+                        </div>
+                    </div>
+                </div>
+            </div> {% endcomment %}
+        </div>
+    </nav>
+    
+    <div class="container">
+    {% block content %}{% endblock content %}
+    </div>
+    {% comment %} <!-- Enable the dark mode -->
+    <label class="d-none">
+        <i class="icon feather icon-sun" id="theme-indicator"></i>
+        <input type="checkbox" id="theme-switch" class="d-none">
+    </label> {% endcomment %}
+
+    {% comment %} {% include 'includes/scripts.html' %} {% endcomment %}
+
+    <!-- Specific Page JS goes HERE  -->
+    {% block javascripts %}{% endblock javascripts %}    
+    
+</body>
+<footer class = "container">
+    © Source code available on <a href="https://github.com/dorsax/betterplace_fetch">GitHub</a>
+</footer>
+</html>

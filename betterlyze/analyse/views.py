@@ -51,5 +51,12 @@ def purge(request, event_id):
     event.donation_set.all().delete()
     return HttpResponseRedirect(reverse('analyse:detail', args=(event.id,)))
 
+@login_required
+def anonymize(request, event_id):
+    event = get_object_or_404(Event, pk=event_id)
+    event.donation_set.all().update(message='') 
+    event.donation_set.all().update(donor='anonymized') 
+    return HttpResponseRedirect(reverse('analyse:detail', args=(event.id,)))
+
 def compare (request):
     return render(request, 'analyse/compare.html')
