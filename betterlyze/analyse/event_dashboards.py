@@ -510,8 +510,5 @@ app.layout = html.Div([
     ),
 ])
 
-app.title='analytics'
-app._favicon=("favicon.png")
-
 if __name__ == '__main__':
     app.run_server(debug=True)
