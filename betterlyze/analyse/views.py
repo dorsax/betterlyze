@@ -5,6 +5,10 @@ from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.contrib.auth.decorators import login_required
+from django.views.generic.edit import CreateView
+from bootstrap_datepicker_plus.widgets import DateTimePickerInput
+
+from django.urls import reverse_lazy
 
 from django_filters.views import FilterView
 from .filter import DonationFilter
@@ -15,6 +19,18 @@ from .tables import DonationTable
 from . import event_dashboards
 #from . import event_dashboards
 # Create your views here.
+
+class EventCreateView (CreateView):
+    model = Event
+    fields = [  "id" ,"start" ,"end","description" ]
+    template_name = "analyse/event_create.html"
+    def get_form(self):
+        form = super().get_form()
+        form.fields["start"].widget = DateTimePickerInput()
+        form.fields["end"].widget = DateTimePickerInput()
+        return form
+    def get_success_url(self) -> str:
+        return reverse_lazy('analyse:details')
 
 class EventList(ListView):
     model = Event

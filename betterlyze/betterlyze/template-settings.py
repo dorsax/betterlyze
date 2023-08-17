@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'bootstrap5',
     'django_filters',
     'betterlyze',
+    "bootstrap_datepicker_plus",
 ]
 
 MIDDLEWARE = [

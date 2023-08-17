@@ -11,3 +11,4 @@ django_cron
 django-tables2
 django-bootstrap-v5
 django-filter
+django-bootstrap-datepicker-plus

@@ -35,7 +35,8 @@
 {% endif %}
 
 {% if user.is_authenticated %}
-{% bootstrap_button 'Neu' button_type="submit" button_class="btn-success" %}
+{% url 'analyse:create' as uri_create %}
+{% bootstrap_button 'Neu' button_type="link" button_class="btn-success" href=uri_create %}
 
 {% endif %}
 {% endblock content %}
