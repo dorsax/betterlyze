@@ -9,7 +9,25 @@
 {% block title %}&Uuml;bersicht{% endblock title %}
 
 {% block content %}
-<h1>Alle Events</h1>
+
+<div class="container">
+  <div class="row">
+    <div class="col-auto">
+      <h1>Alle Events</h1>
+    </div>
+
+    <div class="col-auto">
+      
+      {% if user.is_authenticated %}
+      <a href="{% url 'analyse:create' %}" class="btn btn-success">
+        <span class="bi bi-plus-lg"></span>
+      </a>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
 {% if event_list %}
 <div class="d-flex flex-wrap">
     {% for event in event_list %}
@@ -22,8 +40,18 @@
         <li class="list-group-item">{{event.start|date:"d.m.Y"}} - {{event.end|date:"d.m.Y"}}</li>
         <li class="list-group-item">{{event.donation_sum_euro}} &euro;</li>
         </ul>
-        <div class="card-body">
-          <a href="{% url 'analyse:detail' event.id %}"class="btn btn-primary">Details</a>
+        <div class="row justify-content-between card-body">
+          <div class="col-4">
+            <a href="{% url 'analyse:detail' event.id %}"class="btn btn-primary">Details</a>
+          </div>
+          {% if user.is_authenticated %}
+          <div class="col-4">
+          <a href="#" class="btn btn-success">
+            <span class="bi bi-pencil"></span>
+          </a>
+        </div>
+          {% endif %}
+
         </div>
       </div>
     {% endfor %}
@@ -34,9 +62,5 @@
   </div>
 {% endif %}
 
-{% if user.is_authenticated %}
-{% url 'analyse:create' as uri_create %}
-{% bootstrap_button 'Neu' button_type="link" button_class="btn-success" href=uri_create %}
 
-{% endif %}
 {% endblock content %}
