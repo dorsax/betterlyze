@@ -1,12 +1,5 @@
 {% load bootstrap5 %}
 
-{# Load CSS and JavaScript #}
-{% bootstrap_css %}
-{% bootstrap_javascript %}
-
-{# Display django.contrib.messages as Bootstrap alerts #}
-{% bootstrap_messages %}
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -30,6 +23,7 @@
     <!-- Favicon icon -->
     <link rel="icon" href="{% static 'analyse/images/favicon.png' %}" type="image/png">
     <!-- fontawesome icon -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
     
     {# Load CSS and JavaScript #}
     {% bootstrap_css %}
@@ -52,48 +46,35 @@
 
 </head>
 <body>
-    
-    <nav class="navbar navbar-light navbar-expand-md bg-light sticky-top"> {% comment %}  {% endcomment%}
-        <div class="container">
-            <a href="/">
+    <!-- <nav class="navbar navbar-dark bg-dark">
+    <a href="#" class="navbar-brand">DemoTech</a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="navbar-collapse collapse" id="navbar">
+        <ul class="navbar-nav">
+            <li class="nav-item"><a href="#" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">Contact</a></li>
+        </ul>
+    </div>
+</nav>
+     -->
+    <nav class="container navbar navbar-collapse navbar-light bg-light sticky-top"> {% comment %}  {% endcomment%}
+        <a class="navbar-brand" href="/">
                 <img src="{% static 'analyse/images/logo-full.png' %}" class="logo-full" alt="Betterlyze">
             </a>
-            {% comment %} <a href="#" class="navbar-brand">Betterlyze</a> {% endcomment %}
-            {% comment %} <div class="align-items-center row">
-                <div class="col">
-                    <div style="">
-                        <div id="loading-output-1" style="display: none;"></div>
-                        <div style=""></div>
-                    </div>
-                </div>
-                <div class="col"></div>
-                <div class="col">
-                    <button id="button_reload" class="ms-2 btn btn-primary">Reload</button>
-                </div>
-                <div class="col">
-                    <div id="eventmenu" class="dropdown">
-                        <button type="button" id="react-aria537110805-1" aria-expanded="false" class="dropdown-toggle btn btn-primary">Menü</button>
-                        <div data-bs-popper="static" class="dropdown-menu dropdown-menu-end" aria-labelledby="react-aria537110805-1">
-                            <button n_clicks_timestamp="-1" data-rr-ui-dropdown-item="" class="dropdown-item">
-                                <div id="refresh_switch">
-                                    <div class="sc-dnqmqq chqyiX daq-booleanswitch--light__label">
-                                        <div class="sc-htpNat jAjsxw daq-booleanswitch--light" rotate="0" size="45">
-                                            <div class="sc-bxivhb gJuplL daq-booleanswitch--light__background" size="45" color="#ABE2FB">
-                                                <button class="sc-ifAKCX dlqMgb daq-booleanswitch--light__button" size="45"></button>
-                                            </div>
-                                        </div>
-                                        <label class="sc-bwzfXH gRFjMP">Autoreload</label>
-                                    </div>
-                                </div>
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar">
+            <span class="navbar-toggler-icon"></span>
                             </button>
-                            <hr class="dropdown-divider" role="separator">
-                            <button id="open-offcanvas" n_clicks_timestamp="-1" data-rr-ui-dropdown-item="" class="dropdown-item">Hilfe</button>
-                        </div>
-                    </div>
-                </div>
-            </div> {% endcomment %}
+        <div class="navbar-collapse collapse" id="navbar">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'analyse:index'%}">Analyse</a></li>
+            </ul>
         </div>
     </nav>
+
     
     <div class="container">
     {% block content %}{% endblock content %}
