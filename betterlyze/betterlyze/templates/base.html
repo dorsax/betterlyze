@@ -62,6 +62,18 @@
                         <li class="nav-item"><a class="nav-link" href="{% url 'analyse:detail' event.id %}">{{ event.description }}</a></li>
                     {% endfor %}
                 {% endif %} 
+                
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    {% if user.is_authenticated %}
+                        {% url 'logout' as uri_logout %}
+                        {% bootstrap_button 'Logout' button_type="link" button_class="btn-danger btn-sm" href=uri_logout %}
+                    {% else %}
+                        {% url 'login' as uri_login %}
+                        {% bootstrap_button 'Login' button_type="link" button_class="btn-success btn-sm" href=uri_login %}
+                    {% endif %}
+                </li>
+
             </ul>
         </div>
     </nav>
