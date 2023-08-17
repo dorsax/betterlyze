@@ -46,20 +46,6 @@
 
 </head>
 <body>
-    <!-- <nav class="navbar navbar-dark bg-dark">
-    <a href="#" class="navbar-brand">DemoTech</a>
-    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="navbar-collapse collapse" id="navbar">
-        <ul class="navbar-nav">
-            <li class="nav-item"><a href="#" class="nav-link">Home</a></li>
-            <li class="nav-item"><a href="#" class="nav-link">About</a></li>
-            <li class="nav-item"><a href="#" class="nav-link">Contact</a></li>
-        </ul>
-    </div>
-</nav>
-     -->
     <nav class="container navbar navbar-collapse navbar-light bg-light sticky-top"> {% comment %}  {% endcomment%}
         <a class="navbar-brand" href="/">
             <img src="{% static 'analyse/images/logo-full.png' %}" class="logo-full" alt="Betterlyze">
@@ -80,37 +66,6 @@
         </div>
     </nav>
 
-
-
-    <div class="container">
-    <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Toggle right offcanvas</button>
-</div>
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
-      <div class="offcanvas-header">
-        <h5 id="offcanvasRightLabel">Offcanvas right</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body">
-        <div class="dropdown mt-3">
-            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-              Dropdown button
-            </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-              <li><a class="dropdown-item" href="#">Something else here</a></li>
-            </ul>
-          </div>
-      </div>
-    </div>
-
-
-
-
-
-
-
-    
     <div class="container">
     {% block content %}{% endblock content %}
     </div>
