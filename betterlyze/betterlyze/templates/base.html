@@ -49,10 +49,10 @@
 </head>
 <body>
     <nav class="container navbar navbar-collapse navbar-light bg-light sticky-top"> {% comment %}  {% endcomment%}
-        <a class="navbar-brand" href="/">
+        <a class="navbar-brand" href="/" style="margin-left : 5px">
             <img src="{% static 'analyse/images/logo-full.png' %}" class="logo-full" alt="Betterlyze">
         </a>
-        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar">
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar" style="margin-right : 5px">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="navbar-collapse collapse" id="navbar" style="margin-left:1%">
@@ -80,7 +80,7 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container" style="margin-top: 10px;">
     {% block content %}{% endblock content %}
     </div>
     {% comment %} <!-- Enable the dark mode -->
