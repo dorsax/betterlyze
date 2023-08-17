@@ -19,7 +19,9 @@ from django.conf import settings
 from .models import Event, Donation
 
 
-external_stylesheets = [settings.BOOTSTRAP5['css_url']]
+external_stylesheets = [settings.BOOTSTRAP5['css_url'],
+                        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" ,
+                        ]
 
 app = DjangoDash('comparison',external_stylesheets=external_stylesheets)
 
@@ -325,69 +327,53 @@ def toggle_offcanvas(n1, is_open):
         return not is_open
     return is_open
 
-def buildMenu ():
-    menu_items_static = [
-        # dbc.DropdownMenuItem(divider=True),
-        # pylint: disable=not-callable
-        dbc.DropdownMenuItem(
-                daq.BooleanSwitch(
-                    id='refresh_switch',
-                    on=True,
-                    label="Autoreload",
-                    labelPosition="left",
-                ),
-            ),
-        # pylint: enable=not-callable
-        dbc.DropdownMenuItem(divider=True),
-        dbc.DropdownMenuItem("Hilfe", id='open-offcanvas', n_clicks=0, ),
-    ]
-    return menu_items_static
-    # menu_items_dynamic = []
-    # events = Event.objects.all().order_by('-start')
-    # for event in events:
-    #     menu_items_dynamic.append(
-    #         dbc.DropdownMenuItem (
-    #             event.description,
-    #             href = f'/analyse/{event.id}',
-    #             external_link=True,
-    #         )
-    #     )
-
-    # return menu_items_dynamic + menu_items_static
-
-navbar = dbc.Navbar(
-    dbc.Container(
-        [
-            dbc.NavbarBrand("Analyse", href="#"),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                                dcc.Loading(
-                                    id="loading-1",
-                                    type="default",
-                                    children=html.Div(id="loading-output-1",style = {'display': 'none'})
-                                ),
-                        ),
-                        dbc.Col(),
-                        dbc.Col(
-                            dbc.Button(
-                                "Reload", id="button_reload",color="primary", n_clicks=0, className="ms-2"
-                            ),
-
-                        ),
-                        dbc.Col( dbc.DropdownMenu(
+dropdownmenu = dbc.DropdownMenu(
+                            in_navbar=True,
                             id = 'eventmenu',
-                            label="Menü",
-                            children=buildMenu(),
-                            align_end=True
-                        )),
-                    ],
-                    align="center",
-                ),
-        ]
-    ),
-    className="mb-5",
-    sticky="top",
+                            label=html.Span(className="bi bi-gear"),
+                            color="info",
+                            caret=False,
+                            children=[                        
+                                dbc.DropdownMenuItem(dbc.Button("Reload", 
+                                                                id="button_reload",
+                                                                color="info",
+                                                                n_clicks=0,
+                                                                className="ms-2"
+                                                    ),
+                                ),        
+                                # pylint: disable=not-callable
+                                dbc.DropdownMenuItem(
+                                        daq.BooleanSwitch(
+                                            id='refresh_switch',
+                                            on=True,
+                                            label="Autoreload",
+                                            labelPosition="left",
+                                        ),
+                                    ),
+                                # pylint: enable=not-callable
+                                dbc.DropdownMenuItem(divider=True),
+                                dbc.DropdownMenuItem("Hilfe", id='open-offcanvas', n_clicks=0, ),
+                            ],
+)
+
+loading_asset =  dcc.Loading(
+            id="loading-1",
+            type="default",
+            children=html.Div(id="loading-output-1"),
+            # fixes the loading asset being stuck inside the dropdownmenu
+            style= {
+                "margin-right": "50px"
+            },
+        )
+
+navbar = dbc.Nav(
+    [
+        loading_asset,
+        dropdownmenu,
+    ],
+    fill=True,
+    horizontal='end',
+    class_name="sticky-top",
 )
 
 
