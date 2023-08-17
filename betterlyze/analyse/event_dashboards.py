@@ -14,11 +14,12 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, html
 from functools import cache
 from django.utils import timezone
+from django.conf import settings
 
 from .models import Event, Donation
 
 
-external_stylesheets = ['https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css']
+external_stylesheets = [settings.BOOTSTRAP5['css_url']]
 
 app = DjangoDash('comparison',external_stylesheets=external_stylesheets)
 

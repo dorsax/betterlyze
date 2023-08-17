@@ -119,7 +119,8 @@ BOOTSTRAP5 = {
     # Note that a URL can be either
     # - a string, e.g. "//code.jquery.com/jquery.min.js"
     # - a dict like the default value below (use key "url" for the actual link)
-    "css_url": "https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/materia/bootstrap.min.css",
+    "css_url": "https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/materia/bootstrap.min.css",
+    "javascript_url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js",
 }
 
 
