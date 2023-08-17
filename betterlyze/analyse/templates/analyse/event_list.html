@@ -11,13 +11,27 @@
 {% block content %}
 <h1>Alle Events</h1>
 {% if event_list %}
-    <ul>
+<div class="d-flex">
     {% for event in event_list %}
-        <li><a href="{% url 'analyse:detail' event.id %}">{{ event }}</a></li>
+    <div class="card" style="width: 18rem; margin: 1%;">
+        <!-- <img src="..." class="card-img-top" alt="..."> -->
+        <div class="card-body">
+          <h5 class="card-title">{{ event }}</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+        <li class="list-group-item">{{event.start|date:"d.m.Y"}} - {{event.end|date:"d.m.Y"}}</li>
+        <li class="list-group-item">{{event.donation_sum_euro}} &euro;</li>
+        </ul>
+        <div class="card-body">
+          <a href="{% url 'analyse:detail' event.id %}"class="btn btn-primary">Details</a>
+        </div>
+      </div>
     {% endfor %}
-    </ul>
+</div>
 {% else %}
-    <p>No events are available.</p>
+<div class="alert alert-danger" role="alert">
+    Keine Events gefunden!
+  </div>
 {% endif %}
 
 {% if user.is_authenticated %}
