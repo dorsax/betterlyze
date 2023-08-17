@@ -1,4 +1,12 @@
-{% load bootstrap3 %}
+{% load bootstrap5 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -22,11 +30,6 @@
     <!-- Favicon icon -->
     <link rel="icon" href="{% static 'analyse/images/favicon.png' %}" type="image/png">
     <!-- fontawesome icon -->
-
-    <!-- vendor css -->
-    <link rel="stylesheet" href="{%static 'analyse/css/style.css' %}">
-    <!-- dark mode css -->
-    <link rel="stylesheet" href="{%static 'analyse/css/dark.css' %}">
     
     {# Load CSS and JavaScript #}
     {% bootstrap_css %}

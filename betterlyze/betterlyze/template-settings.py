@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'analyse.apps.AnalyseConfig',
     "django_cron",
     "django_tables2",
-    'bootstrap3',
+    'bootstrap5',
     'django_filters',
     'betterlyze',
 ]
@@ -113,12 +113,12 @@ CRON_CLASSES = [
     "analyse.cron.CronCrawlAll",
 ]
 
-BOOTSTRAP3 = {
+BOOTSTRAP5 = {
     # The complete URL to the Bootstrap CSS file
     # Note that a URL can be either
     # - a string, e.g. "//code.jquery.com/jquery.min.js"
     # - a dict like the default value below (use key "url" for the actual link)
-    "css_url": "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css",
+    "css_url": "https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/materia/bootstrap.min.css",
 }
 
 
