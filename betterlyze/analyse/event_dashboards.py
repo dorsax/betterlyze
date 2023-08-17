@@ -21,6 +21,7 @@ from .models import Event, Donation
 
 external_stylesheets = [settings.BOOTSTRAP5['css_url'],
                         "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" ,
+                        "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css", # fixes some issues with dash compoments
                         ]
 
 app = DjangoDash('comparison',external_stylesheets=external_stylesheets)
@@ -163,10 +164,8 @@ def show_hide_graphs (event_id_old):
 
 @app.callback(
     Output(component_id='loading-output-1', component_property='children'),
-    Output(component_id='spendensumme_new', component_property='children'),
     Output(component_id='Spendenstaende', component_property='data'),
     Output(component_id='Komplettgrafik', component_property='figure'),
-    Output(component_id='Kompletttabelle', component_property='data'),
     Output(component_id='10_100_k_pie', component_property='figure'),
     Output(component_id='hourly_donations', component_property='figure'),
     Output(component_id='hourly_donors', component_property='figure'),
@@ -278,7 +277,7 @@ def update_app(
     piecharts.update_layout(
         legend_title_text='Spendenkategorie',
         title={
-            'text': "Verteilung von Spenden und -summen",
+            'text': f'Verteilung von Spenden und -summen {events[0].description}',
             'y':0.9,
             'x':0.5,
             'xanchor': 'center',
@@ -295,7 +294,7 @@ def update_app(
 
 
 
-    return "",maxsumstr, pd.DataFrame(maxsums).to_dict('records') ,linechart,df_all[0].to_dict('records'),piecharts, hourlydonations, hourlydonor
+    return "", pd.DataFrame(maxsums).to_dict('records') ,linechart,piecharts, hourlydonations, hourlydonor
 
 
 description = '''
@@ -383,11 +382,47 @@ app.layout = html.Div([
     [
         dbc.Row(
             [
-                dbc.Col(html.Label ("Aktuelles Event", id='event_id_new_Label'),
-                                width="2",),
-                dbc.Col(dcc.Dropdown(id='event_id_new',
+                dbc.Col(
+                  [
+                    dbc.Row([
+                        dbc.Col(html.Label ("Aktuelles Event", id='event_id_new_Label'),
+                                width="5",),
+                        dbc.Col(dcc.Dropdown(id='event_id_new',
                                 clearable=False,),
-                                width="3",),
+                                width="5",),
+                    ]),
+                    dbc.Row([
+                        dbc.Col(html.Label ("Vergangenes Event", id='event_id_old'),
+                                width="5",),
+                        dbc.Col(dcc.Dropdown(id='event_id_old',
+                                    multi=True,),
+                                width="5",),
+                    ]),
+                  ],
+                  width=6, 
+                ),
+                dbc.Col(
+                            dash_table.DataTable(
+                                style_as_list_view=True,
+                                id='Spendenstaende',
+                                columns=[
+                                    dict(id='Event', name='Event', ),
+                                    dict(id='Summe', name='Summe', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',', group_delimiter='.').scheme('f').precision(2).group(True))
+                                ],
+                                style_cell_conditional=[
+                                    {
+                                        'if': {'column_id': 'Event'},
+                                        'textAlign': 'left'
+                                    }
+                                ],
+                            ),
+                        width=6,
+                        className="dbc",
+                ),
+            ]
+        ),
+        dbc.Row(
+            [
                 dbc.Col(html.Div([
                     html.H4 (
                             id='spendensumme_new',
@@ -398,11 +433,7 @@ app.layout = html.Div([
         ),
         dbc.Row(
             [
-                dbc.Col(html.Label ("Vergangenes Event", id='event_id_old'),
-                                width="2",),
-                dbc.Col(dcc.Dropdown(id='event_id_old',
-                                    multi=True,),
-                                width="3",),
+                
                 dbc.Col(html.Div([
                     html.H4 (
                             id='spendensumme_old',
@@ -434,48 +465,6 @@ app.layout = html.Div([
                 ),
                 dcc.Graph(
                     id="hourly_donors"
-                ),
-                dbc.Row([
-                    dbc.Col(html.H4 ("Endstände"),
-                                        width="6",
-                    ),
-                    dbc.Col(html.H4 ("Aktuelles Event"),
-                                        width="6",
-                    ),
-                ]),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            dash_table.DataTable(
-                                id='Spendenstaende',
-                                columns=[
-                                    dict(id='Event', name='Event', ),
-                                    dict(id='Summe', name='Summe', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
-                                ],
-                                style_cell_conditional=[
-                                    {
-                                        'if': {'column_id': 'Event'},
-                                        'textAlign': 'left'
-                                    }
-                                ],
-                            )
-                        ),
-                        dbc.Col(dash_table.DataTable(
-                                    id='Kompletttabelle',
-                                    columns=[
-                                            dict(id='donated_at', name='Zeitpunkt'),
-                                            dict(id='donated_amount_in_Euro', name='Spende', type='numeric', format=Format(symbol=Symbol.yes, symbol_suffix=' €', decimal_delimiter=',').scheme('f').precision(2))
-                                        ],
-                                    style_cell_conditional=[
-                                        {'if': {'column_id': 'donated_at'},
-                                        'width': '120px'},
-                                        {'if': {'column_id': 'donated_amount_in_Euro'},
-                                        'width': '240px'},
-                                    ],
-                                    page_size=20,
-                        ),
-                        width="6",),
-                    ]
                 ),
 
             ],id='graphs',),
