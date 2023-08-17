@@ -10,8 +10,6 @@
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% bootstrap_messages %}
 
-{% load render_table from django_tables2 %}
-
 {% block stylesheets %}
     <style>
         .pagination li {
@@ -30,7 +28,13 @@
 
 {% block content %}
 
-    <h1> {{ event }} </h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'analyse:details'%}">Übersicht</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ event }}</li>
+    </ol>
+  </nav>
+
 
     <p>Dieses Event fand vom {{event.start|date:"d.m.Y"}} um {{event.start|date:"G:i"}} bis {{event.end|date:"d.m.Y"}} um {{event.end|date:"G:i"}} statt. </p>
     <p>Es wurden {{event.donation_sum_euro}} &euro; Spenden in diesem Event gesammelt.</p>
@@ -62,7 +66,8 @@
     </form>
     {% endif %}
     <div>
-        {% render_table table 'django_tables2/bootstrap.html' %}
+        {% load render_table from django_tables2 %}
+        {% render_table table %}
     </div>
 
 {% endblock content %}

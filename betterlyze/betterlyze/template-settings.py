@@ -123,6 +123,8 @@ BOOTSTRAP5 = {
     "javascript_url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js",
 }
 
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5.html"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
