@@ -4,14 +4,22 @@
 
 {% block content %}
 
-<p>
-    Willkommen auf Betterlyze, einer Plattform zum Sammeln und Vergleichen von Spendendaten von der Fundraising-Site <a href="www.betterplasce.org">Betterplace.org</a>.
-</p>
-<h3> Erste Schritte</h3>
-<ul>
-    <li>Direkt zur <a href="{% url 'analyse:index'%}">Auswertung</a></li>
-    <li>&Uuml;bersicht aller <a href="{% url 'analyse:details'%}">verf&uuml;gbaren Daten</a></li> 
-</ul>
 
+<p style="font-size: 150%">
+    Willkommen auf Betterlyze, einer Plattform zum Sammeln und Vergleichen von Spendendaten der Fundraising-Site <a href="https://www.betterplace.org" target="_blank">Betterplace.org</a>.
+</p>
+
+<div class="d-flex flex-wrap">
+    <div class="card" style="width: 18rem; margin: 1%;">
+        <div class="card-body">
+            <a href="{% url 'analyse:details'%}" class="btn btn-primary">Alle Events im Überblick</a>
+        </div>
+    </div>
+    <div class="card" style="width: 18rem; margin: 1%;">
+        <div class="card-body">
+            <a href="{% url 'analyse:index'%}" class="btn btn-primary">Zur Analyse</a>
+        </div>
+    </div>
+</div>
 
 {% endblock content %}
