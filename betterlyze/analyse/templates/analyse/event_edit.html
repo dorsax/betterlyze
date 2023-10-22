@@ -5,3 +5,11 @@
 {% endblock title %}
 
 
+{% block extra %}
+<div class="pull-right">
+            <a href="{% url 'analyse:delete' event.id %}" class="btn btn-danger">
+                <span class="bi bi-trash"/>
+            </a>
+</div>
+
+{% endblock extra %}

@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.contrib.auth.decorators import login_required
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 
 from django.urls import reverse_lazy
@@ -45,6 +45,9 @@ class EventEditView (UpdateView):
     def get_success_url(self) -> str:
         return reverse('analyse:detail', args=(self.get_object().id,))
 
+class EventDeleteView (DeleteView):
+    model = Event
+    success_url = reverse_lazy('analyse:list')
 class EventList(ListView):
     model = Event
     template_name = 'analyse/event_list.html'

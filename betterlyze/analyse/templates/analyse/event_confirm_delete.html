@@ -5,7 +5,9 @@
 {% bootstrap_css %}
 {% bootstrap_javascript%}
 
-
+{% block title %}
+{{event.description}} Löschen
+{% endblock title %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
@@ -17,10 +19,13 @@
 <form method="post">
   {% csrf_token %}
   {% bootstrap_form form %}  {# Renders form fields using django-bootstrapX #}
+  <p>Sicher, dass du das Event "{{ event }}" löschen willst? Dadurch werden auch alle damit verbundenen Spendendaten gelöscht!</p>
   {% buttons %}
-  <button type="submit" class="btn btn-primary">Save</button>
+  <button type="submit" class="btn btn-danger">Confirm</button>
+  <a href="{% url 'analyse:list' %}" class="btn btn-success">
+    CANCEL
+  </a>
   {% endbuttons %}
 </form>
 
-{% block extra %}{% endblock extra %}
 {% endblock content %}

@@ -10,6 +10,7 @@ urlpatterns = [
     path('list/', views.EventList.as_view(), name='list'),
     path('create/', login_required(views.EventCreateView.as_view()), name='create'),
     path('<int:pk>/edit/', login_required(views.EventEditView.as_view()), name='edit'),
+    path('<int:pk>/delete/', login_required(views.EventDeleteView.as_view()), name='delete'),
     path('<int:event_id>/crawl/', views.crawl, name='crawl'),
     path('<int:event_id>/purge/', views.purge, name='purge'),
     path('<int:event_id>/anonymize/', views.anonymize, name='anonymize'),
