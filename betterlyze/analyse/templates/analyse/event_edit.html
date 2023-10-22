@@ -5,11 +5,152 @@
 {% endblock title %}
 
 
+
+{% load bootstrap5 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
 {% block extra %}
-<div class="pull-right">
-            <a href="{% url 'analyse:delete' event.id %}" class="btn btn-danger">
-                <span class="bi bi-trash"/>
-            </a>
+
+<div class="d-grid gap-3">
+
+    <div class="p-2"> 
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#crawlModal">
+            Spenden via API holen
+        </button>
+    </div>
+
+    <div class="p-2"> 
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#purgeModal">
+            Spenden leeren
+        </button>
+    </div>
+
+    <div class="p-2"> 
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#anonymiseModal">
+            Daten Anonymisieren
+        </button>
+    </div>
+
+    <div class="p-2"> 
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            Event Löschen
+        </button>
+    </div>
 </div>
+
+<!-- CrawlModal -->
+<div class="modal fade" id="crawlModal" tabindex="-1" aria-labelledby="crawlModalLabel" aria-hidden="true" >
+    <div class="modal-dialog">
+        <div class="modal-content"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="crawlModalLabel">Daten holen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body" >
+                <form action="{% url 'analyse:crawl' event.id %}" method="post">
+                    <p>Sicher, dass du Daten über die API holen willst? Diese Aktion wird NICHT empfohlen!</p> 
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        Holen
+                    </button>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                        Abbrechen
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PurgeModal -->
+<div class="modal fade" id="purgeModal" tabindex="-1" aria-labelledby="purgeModalLabel" aria-hidden="true" >
+    <div class="modal-dialog">
+        <div class="modal-content"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="purgeModalLabel">Spenden leeren</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body" >
+                <form action="{% url 'analyse:purge' event.id %}" method="post">
+                    <p>Sicher, dass du die Spendendaten löschen willst? Du kannst sie im Anschluss neu holen.</p> 
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">
+                        Leeren
+                    </button>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                        Abbrechen
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AnonymiseModal -->
+<div class="modal fade" id="anonymiseModal" tabindex="-1" aria-labelledby="anonymiseModalLabel" aria-hidden="true" >
+    <div class="modal-dialog">
+        <div class="modal-content"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="anonymiseModalLabel">Anonymisieren</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body" >
+                <form action="{% url 'analyse:anonymize' event.id %}" method="post">
+                    <p>Wenn die Daten anonymisiert werden, werden ausschließlich Namen und Nachrichten entfernt, nicht aber Summen und Zeitpunkte.</p> 
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">
+                        Anonymisieren
+                    </button>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                        Abbrechen
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DeleteModal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true" >
+    <div class="modal-dialog">
+        <div class="modal-content"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Event löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body" >
+                <form action="{% url 'analyse:delete' event.id %}" method="post">
+                    <p>Sicher, dass du das Event löschen willst? Dadurch werden auch alle damit verbundenen Spendendaten gelöscht!</p> 
+                    {% csrf_token %}
+                    
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#purgeModal" data-bs-dismiss="modal">
+                        Stattdessen Spendendaten löschen
+                    </button><br/>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal" style="margin-top:5px;">
+                        Abbrechen
+                    </button>
+                    <hr/>
+                    <button type="submit" class="btn btn-danger">
+                        Löschen
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    
 
 {% endblock extra %}

@@ -7,21 +7,6 @@
 {% bootstrap_css %}
 {% bootstrap_javascript %}
 
-{# Display django.contrib.messages as Bootstrap alerts #}
-{% bootstrap_messages %}
-
-{% block stylesheets %}
-    <style>
-        .pagination li {
-            padding-left: 2px;
-            padding-right: 2px;
-            border-radius: 3px;
-            border-width: 10px;
-            border-color: black;
-        }
-    </style>
-{% endblock stylesheets %}
-
 {% block title %}
 {{event.description}}
 {% endblock title %}
@@ -39,25 +24,6 @@
     <p>Dieses Event fand vom {{event.start|date:"d.m.Y"}} um {{event.start|date:"G:i"}} bis {{event.end|date:"d.m.Y"}} um {{event.end|date:"G:i"}} statt. </p>
     <p>Es wurden {{event.donation_sum_euro}} &euro; Spenden in diesem Event gesammelt.</p>
     <p>Die aktuelle Zahl der geladenen Spenden betragt: {{event.donation_count}}</p>
-
-    {% if user.is_authenticated %}
-    <div class="container">
-        <div class="row">
-        <form class="col-sm" action="{% url 'analyse:crawl' event.id %}" method="post">
-            {% bootstrap_button 'Crawl' button_type="submit" button_class="btn-danger" %}
-            {% csrf_token %}
-        </form>
-        <form class="col-sm" action="{% url 'analyse:purge' event.id %}" method="post">
-            {% csrf_token %}
-            {% bootstrap_button 'Purge'  button_type="submit" button_class="btn-danger" %}
-        </form>
-        <form class="col-sm" action="{% url 'analyse:anonymize' event.id %}" method="post">
-            {% csrf_token %}
-            {% bootstrap_button 'Anonymize'  button_type="submit" button_class="btn-danger" %}
-        </form>
-        </div>
-    </div>
-    {% endif %}
 
     {% if filter %}
     <form action="" method="get" class="form">
