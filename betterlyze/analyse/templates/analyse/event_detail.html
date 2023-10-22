@@ -65,6 +65,11 @@
         {% bootstrap_button 'filter' button_type="submit" button_class="btn-primary"%}
     </form>
     {% endif %}
+    <div style="margin:2.5%" >
+        <p class="alert alert-info" role="alert">
+            Achtung: Wenn der Geldbetrag anonym gespendet ist, wird in der Liste ein statistischer Wert angezeigt! Dieser Wert ist für alle anonym gespendeten Beträge gleich!
+        </p>
+    </div>
     <div>
         {% load render_table from django_tables2 %}
         {% render_table table %}
