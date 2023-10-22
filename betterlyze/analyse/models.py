@@ -28,12 +28,9 @@ class Event(models.Model):
 class Donation(models.Model):
     id = models.CharField(primary_key=True,max_length=64)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    donated_amount_in_cents = models.BigIntegerField('Donation in Cents')
-    page = models.BigIntegerField()
-    donated_at = models.DateTimeField()
-    was_zero = models.IntegerField(default=0)
-    donor = models.CharField(max_length=255,default='Anonym')
-    message = models.TextField(default='')
-
-    def donatated_amount_in_euros (self) :
-        return self.donated_amount_in_cents/100
+    donated_amount_in_cents = models.BigIntegerField('Spende in Cents')
+    page = models.BigIntegerField('Seite')
+    donated_at = models.DateTimeField('Spendenzeitpunkt')
+    was_zero = models.IntegerField('Geldbetrag anonym', default=0)
+    donor = models.CharField('Spender',max_length=255,default='Anonym')
+    message = models.TextField('Nachricht',default='')
