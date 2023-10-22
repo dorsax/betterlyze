@@ -68,11 +68,13 @@
                 <li><hr class="dropdown-divider"></li>
                 <li>
                     {% if user.is_authenticated %}
-                        {% url 'logout' as uri_logout %}
-                        {% bootstrap_button 'Logout' button_type="link" button_class="btn-danger btn-sm" href=uri_logout %}
+                        <a href="#" type="button" class="btn btn-sm btn-danger">
+                            Logout
+                        </a>
                     {% else %}
-                        {% url 'login' as uri_login %}
-                        {% bootstrap_button 'Login' button_type="link" button_class="btn-success btn-sm" href=uri_login %}
+                        <a href="#" type="button" class="btn btn-sm btn-success">
+                            Login
+                        </a>
                     {% endif %}
                 </li>
 

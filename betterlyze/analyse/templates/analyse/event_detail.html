@@ -28,8 +28,9 @@
     {% if filter %}
     <form action="" method="get" class="form">
         {% bootstrap_form filter.form %}
-        {% bootstrap_button 'filter' button_type="submit" button_class="btn-primary"%}
-    </form>
+      <button type="submit" class="btn btn-primary" >
+          Filtern
+      </button>    </form>
     {% endif %}
     <div style="margin:2.5%" >
         <p class="alert alert-info" role="alert">
