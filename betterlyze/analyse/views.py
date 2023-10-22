@@ -30,7 +30,7 @@ class EventCreateView (CreateView):
         form.fields["end"].widget = DateTimePickerInput()
         return form
     def get_success_url(self) -> str:
-        return reverse('analyse:detail', args=(self.get_object().id,))
+        return reverse('analyse:list')
 
 class EventEditView (UpdateView):
     model = Event
