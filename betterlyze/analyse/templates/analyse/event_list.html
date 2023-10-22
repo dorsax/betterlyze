@@ -46,7 +46,7 @@
           </div>
           {% if user.is_authenticated %}
           <div class="col-4">
-          <a href="#" class="btn btn-success">
+          <a href="{% url 'analyse:edit' event.id %}" class="btn btn-success">
             <span class="bi bi-pencil"></span>
           </a>
         </div>

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load bootstrap5 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript%}
+
+
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+{% endblock scripts %}
+
+{% block content %}
+
+{{ form.media }}  {# Adds widget's JS/CSS files from CDN #}
+<form method="post">
+  {% csrf_token %}
+  {% bootstrap_form form %}  {# Renders form fields using django-bootstrapX #}
+  {% buttons %}
+  <button type="submit" class="btn btn-primary">Save</button>
+  {% endbuttons %}
+</form>
+
+{% endblock content %}
