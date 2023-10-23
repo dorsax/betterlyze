@@ -1,5 +1,5 @@
 from django_tables2 import SingleTableMixin
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
@@ -92,3 +92,23 @@ def anonymize(request, event_id):
 
 def compare (request):
     return render(request, 'analyse/compare.html')
+
+def toggle_compare (request, event_id):
+    try:
+        comparator = request.session.get('django_plotly_dash', {})
+        event_list = comparator.get('to_compare', list())
+        if (event_id in event_list):
+            # remove from list
+            event_list.remove(event_id)
+        else:
+            # add to compare list
+            event_list.append(event_id)
+    except KeyError:
+        comparator={}
+        event_list=list()
+        event_list.append(event_id)
+    finally:
+        comparator['to_compare'] = event_list
+        request.session['django_plotly_dash'] = comparator
+
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))

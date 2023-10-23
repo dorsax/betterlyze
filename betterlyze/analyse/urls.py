@@ -14,4 +14,5 @@ urlpatterns = [
     path('<int:event_id>/crawl/', views.crawl, name='crawl'),
     path('<int:event_id>/purge/', views.purge, name='purge'),
     path('<int:event_id>/anonymize/', views.anonymize, name='anonymize'),
+    path('<int:event_id>/toggle-compare/', views.toggle_compare, name='toggle_compare'),
 ]

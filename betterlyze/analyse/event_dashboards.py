@@ -89,32 +89,53 @@ def query_events( event_id_new, event_ids_old = list()):
     except Exception as exc:
         raise PreventUpdate from exc
 
-@app.callback(
-    Output(component_id='event_id_old', component_property='options'),
-    Output(component_id='event_id_new', component_property='options'),
-    Input(component_id='event_id_new', component_property='value'),
+@app.expanded_callback(
+    Output(component_id='events_dropdown', component_property='options'),
+    Output(component_id='current_event_dropdown', component_property='options'),
+    Output(component_id='events_dropdown', component_property='value'),
+    Output(component_id='current_event_dropdown', component_property='value'),
+    Input(component_id='events_dropdown', component_property='value'),
+    Input(component_id='current_event_dropdown', component_property='value'),    
 )
-def update_dropdowns (event_id_new):
+def update_dropdowns (event_ids, current_event, session_state=None, **kwargs):
+
+    # Session handling
+    if session_state is None:
+        raise NotImplementedError("Cannot handle a missing session state")
+    events_to_compare = session_state.get('to_compare', list())
+    session_state['to_compare'] = events_to_compare
+
+    if event_ids is None :
+        if len (session_state['to_compare']) > 0:
+            event_ids = session_state['to_compare']
+    else:
+        session_state['to_compare'] = event_ids
+    
+
+    # Dropdown options
     all_events = Event.objects.all().values('id','description')
-    all_events_dropdown = []
-    old_events_dropdown = []
+    current_event_dropdown_options = []
+    events_dropdown_options = []
     for event in all_events:
         dropdown_item = {
             'label' : event['description'],
             'value' : event['id'],
         }
-        if (event['id'] == event_id_new):
-            all_events_dropdown.append(dropdown_item)
-        else:
-            all_events_dropdown.append(dropdown_item)
-            old_events_dropdown.append(dropdown_item)
+        if event['id'] in session_state['to_compare']:
+            current_event_dropdown_options.append(dropdown_item)
+        events_dropdown_options.append(dropdown_item)
 
-    return old_events_dropdown, all_events_dropdown
+    if not (current_event in session_state['to_compare']) :
+        current_event = None
+
+    if (current_event is None) and (len(session_state["to_compare"])>0): current_event = session_state["to_compare"][0]
+
+    return events_dropdown_options, current_event_dropdown_options, event_ids, current_event
 
 @app.callback(
     Output(component_id='graphs', component_property='style'),
     Output(component_id='sums', component_property='style'),
-    Input(component_id='event_id_new', component_property='value'),
+    Input(component_id='current_event_dropdown', component_property='value'),
 )
 def show_hide_graphs (event_id_old):
     style = {'display': 'none'}
@@ -132,8 +153,8 @@ def show_hide_graphs (event_id_old):
     Output(component_id='10_100_k_pie', component_property='figure'),
     Output(component_id='hourly_donations', component_property='figure'),
     Output(component_id='hourly_donors', component_property='figure'),
-    Input(component_id='event_id_old', component_property='value'),
-    Input(component_id='event_id_new', component_property='value'),
+    Input(component_id='events_dropdown', component_property='value'),
+    Input(component_id='current_event_dropdown', component_property='value'),
     Input('refresh_switch', 'on'),
     Input('button_reload', 'n_clicks'),
     Input('interval-component', 'n_intervals'),
@@ -148,6 +169,8 @@ def update_app(
 
     event_ids_old = list()
     event_ids_old=event_id_old
+    event_ids_old.remove(event_id_new) # TODO: refactor code to better reflect whats happening
+
     ctx = dash.callback_context
     try:
         if ctx.triggered[0]['prop_id'].split('.')[0]== 'refresh_switch':
@@ -352,6 +375,7 @@ navbar = dbc.Nav(
 
 app.layout = html.Div([
     navbar,
+    html.Div(id='test'),
     html.Div(
     [
         dbc.Row(
@@ -359,17 +383,17 @@ app.layout = html.Div([
                 dbc.Col(
                   [
                     dbc.Row([
-                        dbc.Col(html.Label ("Aktuelles Event", id='event_id_new_Label'),
+                        dbc.Col(html.Label ("Zu vergleichende Events", id='events_Label'),
                                 width="5",),
-                        dbc.Col(dcc.Dropdown(id='event_id_new',
-                                clearable=False,),
+                        dbc.Col(dcc.Dropdown(id='events_dropdown',
+                                    multi=True,),
                                 width="5",),
                     ]),
                     dbc.Row([
-                        dbc.Col(html.Label ("Vergangenes Event", id='event_id_old'),
+                        dbc.Col(html.Label ("Referenzevent", id='current_event_Label'),
                                 width="5",),
-                        dbc.Col(dcc.Dropdown(id='event_id_old',
-                                    multi=True,),
+                        dbc.Col(dcc.Dropdown(id='current_event_dropdown',
+                                clearable=False,),
                                 width="5",),
                     ]),
                   ],
@@ -447,4 +471,5 @@ app.layout = html.Div([
         interval=3*60*1000, # in milliseconds
         n_intervals=0,
     ),
+
 ])
