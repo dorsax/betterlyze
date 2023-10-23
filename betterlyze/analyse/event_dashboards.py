@@ -301,7 +301,7 @@ In den oberen beiden Dropdowns kann ausgewählt werden, welches Event angezeigt 
 Die einzenen Grafiken können gezoomt werden, Doppelklick setzt den Zoom zurück.
 
 Die obere Grafik setzt sich derzeit zu weit zurück, weshalb auf den Reload-Button geklickt werden muss.
-Der **Reload-Button** aktualisiert alle Grafiken. **Ein Reload der Seite über den Browser selbst setzt auch den Inhalt der DropDown-Felder zurück*
+Der **Reload-Button** aktualisiert alle Grafiken.
 
 Die Daten werden im Hintergrund alle 5 Minuten geholt, und im Frontend automatisch alle 3 Minuten aktualisiert.
 Dabei werden aktuell auch alle Ansichten zurückgesetzt.
