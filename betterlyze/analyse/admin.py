@@ -5,7 +5,8 @@ from django_plotly_dash import admin as dpdadmin
 # Register your models here.
 
 # De-register all models from other apps
-# !!! Django_Cron cannot be removed by this, as it isn't registered when this script is executed. However, we need it nonetheless.
+# !!! Django_Cron cannot be removed by this, as it isn't registered when this script is executed.
+#  We need thos logs anyway, so this isn't 
 for app_config in apps.get_app_configs():
     for model in app_config.get_models():
         print(model)
