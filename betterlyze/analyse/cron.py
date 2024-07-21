@@ -15,7 +15,7 @@ class CronCrawl(CronJobBase): # only crawls currently active events
         # get all events started before now and ended about a cacle before now plus 10 minutes for
         events = Event.objects.filter(start__lte =currentdatetime, end__gte = currentdatetime - timedelta (minutes=self.RUN_EVERY_MINS+10)) 
         for event in events:
-            crawl(event.id,1,1)
+            crawl(event.id)
 
 class CronCrawlAll(CronJobBase): # crawls all events
     RUN_EVERY_MINS = 1440 # each day
@@ -27,3 +27,10 @@ class CronCrawlAll(CronJobBase): # crawls all events
         events = Event.objects.all()
         for event in events:
             crawl(event.id)
+
+
+while datetime.now() < datetime(2023,11,12,22):
+    print("CRAWLING")
+    crawl(event_id)
+    print("Crawl finished at " +str(datetime.now()))
+    time.sleep(45)
